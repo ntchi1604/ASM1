@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MediVia - Nhà thuốc trực tuyến có Dược sĩ &amp; AI đồng hành</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed": "#ffc4b7",
+            "on-tertiary-container": "#31009a",
+            "surface": "#f4f6ff",
+            "on-primary": "#c0fff4",
+            "error-dim": "#9f0519",
+            "primary-fixed": "#7ff0e0",
+            "primary": "#00675e",
+            "inverse-primary": "#85f6e6",
+            "on-surface": "#222f41",
+            "surface-container-lowest": "#ffffff",
+            "inverse-on-surface": "#909eb4",
+            "on-primary-container": "#005951",
+            "error": "#b31b25",
+            "on-secondary-container": "#8d1900",
+            "secondary-dim": "#992206",
+            "on-tertiary": "#f6f0ff",
+            "on-surface-variant": "#4f5c70",
+            "surface-container-low": "#eaf1ff",
+            "on-secondary-fixed-variant": "#9a2307",
+            "on-background": "#222f41",
+            "background": "#f4f6ff",
+            "on-primary-fixed-variant": "#00635a",
+            "on-error-container": "#570008",
+            "on-tertiary-fixed-variant": "#3a00b2",
+            "surface-bright": "#f4f6ff",
+            "secondary": "#aa2e13",
+            "tertiary-container": "#b4a4ff",
+            "surface-container-high": "#d3e4ff",
+            "primary-container": "#7ff0e0",
+            "on-tertiary-fixed": "#180058",
+            "outline-variant": "#a0aec4",
+            "tertiary-fixed-dim": "#a794ff",
+            "surface-tint": "#00675e",
+            "surface-dim": "#c0d6f7",
+            "primary-fixed-dim": "#70e1d2",
+            "secondary-fixed-dim": "#ffb09e",
+            "error-container": "#fb5151",
+            "surface-container-highest": "#cadefe",
+            "primary-dim": "#005a52",
+            "inverse-surface": "#020f1f",
+            "on-secondary": "#ffefec",
+            "on-error": "#ffefee",
+            "outline": "#6a788c",
+            "tertiary": "#5d38df",
+            "on-primary-fixed": "#00443d",
+            "tertiary-dim": "#5127d3",
+            "surface-container": "#dce9ff",
+            "surface-variant": "#cadefe",
+            "secondary-container": "#ffc4b7",
+            "on-secondary-fixed": "#6a1100",
+            "tertiary-fixed": "#b4a4ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "gutter": "1rem",
+            "space-xl": "2rem",
+            "margin": "1.5rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-sm": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-xl": ["Be Vietnam Pro"],
+            "label-md": ["Inter"],
+            "headline-md": ["Be Vietnam Pro"],
+            "headline-lg": ["Be Vietnam Pro"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "body-lg": ["1.125rem", { "lineHeight": "1.5", "fontWeight": "400" }],
+            "label-sm": ["0.75rem", { "lineHeight": "1.2", "fontWeight": "500" }],
+            "body-sm": ["0.875rem", { "lineHeight": "1.4", "fontWeight": "400" }],
+            "headline-xl": ["2.25rem", { "lineHeight": "1.15", "fontWeight": "700" }],
+            "label-md": ["0.875rem", { "lineHeight": "1.25", "fontWeight": "500" }],
+            "headline-md": ["1.25rem", { "lineHeight": "1.25", "fontWeight": "600" }],
+            "headline-lg": ["1.75rem", { "lineHeight": "1.2", "fontWeight": "600" }],
+            "body-md": ["1rem", { "lineHeight": "1.5", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="bg-[#F6F8FA] text-on-surface antialiased font-body-md">
+<!-- 1. THANH TIỆN ÍCH TRÊN CÙNG -->
+<aside aria-label="Thông báo tiện ích" class="w-full bg-[#0B7A70] text-surface-container-lowest text-label-sm font-label-sm py-2 px-6">
+<div class="max-w-[1200px] mx-auto flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px]">call</span>
+<span class="tracking-wide">Tư vấn dược sĩ miễn phí <strong class="font-semibold">1800 6928</strong></span>
+</div>
+<div class="flex items-center space-x-4 text-surface-container-lowest/90 text-label-sm font-label-sm">
+<a class="hover:text-surface-container-lowest transition-colors" href="#don-hang">Tra cứu đơn hàng</a>
+<span class="text-surface-container-lowest/40">·</span>
+<a class="hover:text-surface-container-lowest transition-colors flex items-center gap-1" href="#he-thong">
+<span class="material-symbols-outlined text-[14px]">storefront</span>
+          Hệ thống 1.247 nhà thuốc
+        </a>
+<span class="text-surface-container-lowest/40">·</span>
+<a class="hover:text-surface-container-lowest transition-colors flex items-center gap-1" href="#tai-app">
+<span class="material-symbols-outlined text-[14px]">smartphone</span>
+          Tải ứng dụng
+        </a>
+</div>
+</div>
+</aside>
+<!-- 2. HEADER TRẮNG TINH TẾ (TopNavBar Container) -->
+<header class="w-full sticky top-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant/30">
+<div class="max-w-[1200px] mx-auto px-6 py-3.5 flex items-center justify-between gap-6">
+<!-- Logo MediVia -->
+<a class="flex items-center gap-1.5 shrink-0 group" href="/">
+<div class="flex items-center text-[#0A2540] font-headline-md text-headline-md font-bold tracking-tight">
+<span>MediV</span>
+<span class="relative inline-flex items-center justify-center">
+<span>i</span>
+<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#0B7A70] rounded-full"></span>
+</span>
+<span>a</span>
+<div class="ml-1.5 w-5 h-5 rounded bg-[#0B7A70] text-surface-container-lowest flex items-center justify-center text-[13px] font-bold shadow-sm">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">local_hospital</span>
+</div>
+</div>
+</a>
+<!-- Ô TÌM KIẾM CỰC RỘNG PILL-SHAPED -->
+<div class="flex-1 max-w-[620px]">
+<div class="relative flex items-center w-full bg-surface-container-lowest rounded-full border border-primary/40 hover:border-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all px-2.5 py-1.5 shadow-sm">
+<!-- Chip tím nhạt AI -->
+<div class="flex items-center gap-1 bg-[#7C5CFF14] text-tertiary px-2.5 py-1 rounded-full text-label-sm font-label-sm font-semibold mr-2 shrink-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span>AI</span>
+</div>
+<!-- Input -->
+<input class="w-full bg-transparent border-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/70 text-body-sm font-body-sm py-1 px-1 focus:outline-none" placeholder="Nhập triệu chứng hoặc tên thuốc — ví dụ: thuốc đau đầu dưới 100.000 ₫" type="text"/>
+<!-- Action buttons right -->
+<div class="flex items-center space-x-1 shrink-0 ml-2">
+<button aria-label="Tìm kiếm bằng giọng nói" class="p-1.5 rounded-full text-tertiary hover:bg-[#7C5CFF12] transition-colors" title="Tìm bằng giọng nói" type="button">
+<span class="material-symbols-outlined text-[20px]">mic</span>
+</button>
+<button aria-label="Nhận diện toa thuốc bằng camera" class="p-1.5 rounded-full text-tertiary hover:bg-[#7C5CFF12] transition-colors" title="Nhận diện toa bằng camera" type="button">
+<span class="material-symbols-outlined text-[20px]">photo_camera</span>
+</button>
+<button aria-label="Thực hiện tìm kiếm" class="w-8 h-8 rounded-full bg-primary hover:bg-primary-dim text-surface-container-lowest flex items-center justify-center ml-1 transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bên phải Header: Vị trí, Tài khoản, Giỏ hàng -->
+<div class="flex items-center space-x-5 shrink-0">
+<!-- Vị trí -->
+<button class="flex items-center gap-1.5 text-on-surface hover:text-primary transition-colors text-body-sm font-body-sm" type="button">
+<span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+<div class="text-left">
+<span class="block text-[11px] text-on-surface-variant leading-tight">Khu vực giao</span>
+<span class="font-medium text-label-md font-label-md leading-tight text-[#0A2540]">TP. Hồ Chí Minh</span>
+</div>
+</button>
+<div class="h-6 w-[1px] bg-outline-variant/30"></div>
+<!-- Tài khoản -->
+<button class="flex items-center gap-1.5 text-on-surface hover:text-primary transition-colors text-body-sm font-body-sm" type="button">
+<span class="material-symbols-outlined text-[22px] text-on-surface-variant">person</span>
+<span class="font-medium text-label-md font-label-md text-[#0A2540]">Đăng nhập</span>
+</button>
+<!-- Giỏ hàng -->
+<a class="relative flex items-center justify-center p-2 rounded-full hover:bg-surface-container-low transition-colors text-[#0A2540]" href="#gio-hang">
+<span class="material-symbols-outlined text-[24px]">shopping_cart</span>
+<span class="absolute 0 top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#EA580C] text-surface-container-lowest text-[11px] font-bold flex items-center justify-center shadow-sm">
+            3
+          </span>
+</a>
+</div>
+</div>
+<!-- 3. NAV NGANG NGAY DƯỚI HEADER -->
+<nav class="border-t border-outline-variant/20 bg-surface-container-lowest">
+<div class="max-w-[1200px] mx-auto px-6 flex items-center space-x-8 text-body-sm font-body-sm text-[#0A2540]">
+<a class="py-2.5 hover:text-primary transition-colors" href="#thuc-pham-chuc-nang">Thực phẩm chức năng</a>
+<a class="py-2.5 hover:text-primary transition-colors" href="#duoc-my-pham">Dược mỹ phẩm</a>
+<!-- Thuốc active -->
+<a class="py-2.5 text-primary font-semibold border-b-2 border-primary" href="#thuoc">Thuốc</a>
+<a class="py-2.5 hover:text-primary transition-colors" href="#cham-soc-ca-nhan">Chăm sóc cá nhân</a>
+<a class="py-2.5 hover:text-primary transition-colors" href="#thiet-bi-y-te">Thiết bị y tế</a>
+<a class="py-2.5 hover:text-primary transition-colors" href="#me-va-be">Mẹ và bé</a>
+<a class="py-2.5 hover:text-primary transition-colors" href="#goc-suc-khoe">Góc sức khoẻ</a>
+</div>
+</nav>
+</header>
+<main class="max-w-[1200px] mx-auto px-6 py-6 space-y-10">
+<!-- 4. HERO SECTION (62% Banner & 38% Thẻ dọc) -->
+<section class="grid grid-cols-12 gap-6 items-stretch">
+<!-- Cột trái 62% (8 cột trên 12) -->
+<div class="col-span-12 lg:col-span-8 bg-[#E6F7F5] rounded-xl p-8 border border-primary/20 flex flex-col justify-between relative overflow-hidden">
+<div class="max-w-[360px] z-10">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-label-sm font-label-sm font-medium mb-3">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+            Nhà thuốc đạt chuẩn GPP Bộ Y Tế
+          </div>
+<h1 class="text-headline-xl font-headline-xl text-[#0A2540] mb-3 leading-tight font-bold">
+            Nhà thuốc có dược sĩ và AI đồng hành
+          </h1>
+<p class="text-body-md font-body-md text-on-surface-variant mb-6">
+            Giao trong 2 giờ tại nội thành, đổi trả trong 30 ngày
+          </p>
+<div class="flex flex-wrap items-center gap-3">
+<button class="bg-primary hover:bg-primary-dim text-surface-container-lowest px-5 py-2.5 rounded-lg text-label-md font-label-md font-medium transition-all shadow-sm">
+              Mua thuốc ngay
+            </button>
+<button class="border border-primary text-primary hover:bg-primary/5 px-5 py-2.5 rounded-lg text-label-md font-label-md font-medium transition-all">
+              Tìm nhà thuốc gần bạn
+            </button>
+</div>
+</div>
+<!-- Minh họa Dược sĩ -->
+<div class="absolute right-0 bottom-0 top-0 w-[42%] pointer-events-none hidden sm:flex items-end justify-end">
+<img alt="Dược sĩ MediVia" class="h-full object-cover object-left-top max-h-[340px]" data-alt="A friendly and trustworthy Vietnamese female pharmacist wearing a pristine white lab coat and stethoscope, smiling warmly in a bright modern medical consultation setting. The background is clean and clinical with soft teal accents, creating a calm, high-reliability professional pharmaceutical atmosphere with gentle lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCq_xSWgmpZ91mHFJR_I_QCTT-SY3dxFFxKYbGjvuHxtr1_mE6uPZGVePztcMmUs898lsYrbUrarGvWgjMJMlELqsyGZdZOE_LcFkn6a61X8y-ErGIEtuHGKbkj1KNk8JsOBD7Wm4MIjqlfhNZOq7xEidRoFG0jgIroreePlzLrScpWmY6TxvlRRlhOmJ0JMGmiFk7Td5E4Z2UNeZyZ71M_dSrn1d_YzUuo6r01DwpJVCv0tM3rKC3Y3HdkRSu0kN5M4WS2x4QZA"/>
+</div>
+</div>
+<!-- Cột phải 38% (4 cột trên 12): 2 thẻ nhỏ xếp dọc -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
+<!-- Thẻ trên: AI Gợi ý -->
+<div class="flex-1 bg-gradient-to-br from-[#7C5CFF0A] to-surface-container-lowest border border-tertiary/20 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center gap-1 text-label-sm font-label-sm font-semibold text-tertiary bg-[#7C5CFF15] px-2.5 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                AI gợi ý
+              </span>
+<span class="text-[11px] text-on-surface-variant/80">Sàng lọc an toàn</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-[#0A2540] text-[15px] font-semibold mb-3">
+              Mô tả triệu chứng, AI gợi ý nhóm thuốc phù hợp
+            </h3>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-2.5 text-body-sm font-body-sm text-on-surface-variant flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-tertiary text-[18px]">chat_bubble</span>
+<span class="truncate italic text-[13px]">"Tôi bị ho khan 3 ngày, hơi rát cổ"</span>
+</div>
+</div>
+<button class="w-full bg-tertiary hover:bg-tertiary-dim text-surface-container-lowest py-2.5 px-4 rounded-lg text-label-md font-label-md font-medium transition-all text-center flex items-center justify-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">arrow_back_ios_new</span>
+            Bắt đầu tư vấn
+          </button>
+</div>
+<!-- Thẻ dưới: Tải đơn thuốc -->
+<div class="flex-1 bg-surface-container-lowest border border-[#E3E9EF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2 text-primary font-medium text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+              Kê đơn an toàn
+            </div>
+<h3 class="text-headline-md font-headline-md text-[#0A2540] text-[15px] font-semibold mb-2">
+              Tải đơn thuốc, dược sĩ soạn hàng
+            </h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-[13px] mb-3">
+              Chụp ảnh toa bác sĩ, nhận báo giá chuẩn hoạt chất sau 5 phút.
+            </p>
+</div>
+<button class="w-full border border-primary text-primary hover:bg-primary/5 py-2 px-4 rounded-lg text-label-md font-label-md font-medium transition-all text-center flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+            Tải đơn thuốc
+          </button>
+</div>
+</div>
+</section>
+<!-- 5. DẢI 4 CAM KẾT VÀNG -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-surface-container-lowest p-5 rounded-xl border border-[#E3E9EF]">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-[#0B7A70]/10 text-[#0B7A70] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div>
+<h4 class="text-label-md font-label-md font-semibold text-[#0A2540]">Thuốc chính hãng, có hoá đơn</h4>
+<p class="text-[12px] text-on-surface-variant">Nguồn gốc minh bạch 100%</p>
+</div>
+</div>
+<div class="flex items-center space-x-3 border-l border-outline-variant/20 pl-4">
+<div class="w-10 h-10 rounded-lg bg-[#0B7A70]/10 text-[#0B7A70] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">support_agent</span>
+</div>
+<div>
+<h4 class="text-label-md font-label-md font-semibold text-[#0A2540]">Dược sĩ tư vấn miễn phí</h4>
+<p class="text-[12px] text-on-surface-variant">Đội ngũ chuyên môn 24/7</p>
+</div>
+</div>
+<div class="flex items-center space-x-3 border-l border-outline-variant/20 pl-4">
+<div class="w-10 h-10 rounded-lg bg-[#0B7A70]/10 text-[#0B7A70] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">schedule</span>
+</div>
+<div>
+<h4 class="text-label-md font-label-md font-semibold text-[#0A2540]">Giao 2 giờ nội thành</h4>
+<p class="text-[12px] text-on-surface-variant">Nhanh chóng khi cần gấp</p>
+</div>
+</div>
+<div class="flex items-center space-x-3 border-l border-outline-variant/20 pl-4">
+<div class="w-10 h-10 rounded-lg bg-[#0B7A70]/10 text-[#0B7A70] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">assignment_return</span>
+</div>
+<div>
+<h4 class="text-label-md font-label-md font-semibold text-[#0A2540]">Đổi trả trong 30 ngày</h4>
+<p class="text-[12px] text-on-surface-variant">Thủ tục đơn giản, an tâm</p>
+</div>
+</div>
+</section>
+<!-- 6. DẢI 6 LỐI VÀO CÔNG CỤ AI -->
+<section class="space-y-3">
+<div class="flex items-center gap-2">
+<h2 class="text-headline-md font-headline-md text-[#0A2540] font-semibold">Công cụ AI của MediVia</h2>
+<span class="bg-[#7C5CFF1A] text-tertiary text-[11px] font-semibold px-2 py-0.5 rounded-full border border-tertiary/20">Mới</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+<!-- 1 -->
+<a class="bg-surface-container-lowest hover:bg-surface-container-low border border-tertiary/20 rounded-xl p-3.5 flex flex-col items-center text-center transition-all shadow-sm group" href="#tu-van-trieu-chung">
+<div class="w-10 h-10 rounded-full bg-[#7C5CFF10] text-tertiary flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">health_and_safety</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540] line-clamp-1">Tư vấn triệu chứng</span>
+</a>
+<!-- 2 -->
+<a class="bg-surface-container-lowest hover:bg-surface-container-low border border-tertiary/20 rounded-xl p-3.5 flex flex-col items-center text-center transition-all shadow-sm group" href="#tim-thuoc-tu-nhien">
+<div class="w-10 h-10 rounded-full bg-[#7C5CFF10] text-tertiary flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">manage_search</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540] line-clamp-1">Tìm thuốc bằng câu tự nhiên</span>
+</a>
+<!-- 3 -->
+<a class="bg-surface-container-lowest hover:bg-surface-container-low border border-tertiary/20 rounded-xl p-3.5 flex flex-col items-center text-center transition-all shadow-sm group" href="#chatbot-duoc-si">
+<div class="w-10 h-10 rounded-full bg-[#7C5CFF10] text-tertiary flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">smart_toy</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540] line-clamp-1">Chatbot dược sĩ</span>
+</a>
+<!-- 4 -->
+<a class="bg-surface-container-lowest hover:bg-surface-container-low border border-tertiary/20 rounded-xl p-3.5 flex flex-col items-center text-center transition-all shadow-sm group" href="#nhan-dien-anh">
+<div class="w-10 h-10 rounded-full bg-[#7C5CFF10] text-tertiary flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">document_scanner</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540] line-clamp-1">Nhận diện thuốc bằng ảnh</span>
+</a>
+<!-- 5 -->
+<a class="bg-surface-container-lowest hover:bg-surface-container-low border border-tertiary/20 rounded-xl p-3.5 flex flex-col items-center text-center transition-all shadow-sm group" href="#kiem-tra-tuong-tac">
+<div class="w-10 h-10 rounded-full bg-[#7C5CFF10] text-tertiary flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">sync_problem</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540] line-clamp-1">Kiểm tra tương tác thuốc</span>
+</a>
+<!-- 6 -->
+<a class="bg-surface-container-lowest hover:bg-surface-container-low border border-tertiary/20 rounded-xl p-3.5 flex flex-col items-center text-center transition-all shadow-sm group" href="#tim-giong-noi">
+<div class="w-10 h-10 rounded-full bg-[#7C5CFF10] text-tertiary flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">keyboard_voice</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540] line-clamp-1">Tìm bằng giọng nói</span>
+</a>
+</div>
+</section>
+<!-- 7. KHỐI FLASH SALE -->
+<section class="bg-surface-container-lowest rounded-xl border border-[#E3E9EF] overflow-hidden shadow-sm">
+<!-- Thanh tiêu đề màu cam nhạt rực rỡ -->
+<div class="bg-[#FFF4ED] px-6 py-3.5 border-b border-[#FDBA74]/30 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center space-x-3">
+<div class="flex items-center gap-1.5 text-[#C2410C] font-headline-md text-headline-md font-bold">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span>Giảm giá hôm nay</span>
+</div>
+<span class="text-[12px] text-on-surface-variant font-medium hidden sm:inline">| Kết thúc sau:</span>
+</div>
+<!-- Đồng hồ đếm ngược -->
+<div class="flex items-center space-x-1.5 font-mono text-label-sm font-label-sm">
+<span class="bg-[#EA580C] text-surface-container-lowest px-2 py-1 rounded font-bold">02</span>
+<span class="text-[#EA580C] font-bold">:</span>
+<span class="bg-[#EA580C] text-surface-container-lowest px-2 py-1 rounded font-bold">41</span>
+<span class="text-[#EA580C] font-bold">:</span>
+<span class="bg-[#EA580C] text-surface-container-lowest px-2 py-1 rounded font-bold">18</span>
+</div>
+</div>
+<!-- Hàng 5 thẻ sản phẩm ngang -->
+<div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+<!-- Sản phẩm 1 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-3.5 flex flex-col justify-between hover:border-primary/40 transition-colors relative">
+<div>
+<div class="relative w-full aspect-square bg-[#FFFFFF] rounded-md border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center">
+<span class="absolute top-2 left-2 bg-[#EA580C] text-surface-container-lowest text-[11px] font-bold px-1.5 py-0.5 rounded">-25%</span>
+<img alt="Hapacol 650 sủi" class="w-full h-full object-contain p-2" data-alt="Commercial pharmaceutical white product box of Hapacol 650 effervescent tablets on a clean neutral white studio table with soft clinical lighting, clear label typography, and subtle teal reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWCmMa90KXMMeMJ4LLbJ8222WsrzsIyX7peFg6J1J0GqDoeZ8ousIIzlfykBwnjy6HRv2LSItfoAChg9WawXjXclX5NiWtEQYuYAi4qSn--CWfg3jzEVVwJJgL62hUZifmJL1WpLDGzf-LGsHu46YarLkGGkypEy21xkPyBgUL_4ABMcohb5FjjEtiXSjGo8oCGlZEpicQq1eSBX1pZPnqzNns1J6ZDWzG-qLywd_CRiQnmj7Zcrf5oZb7Tk4BZWGseqRm9qCfCg"/>
+</div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Hapacol 650 sủi
+            </h3>
+<p class="text-[12px] text-outline line-clamp-1 mb-2">Paracetamol 650mg</p>
+<div class="flex items-baseline space-x-2 mb-1">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">78.000 ₫</span>
+<span class="text-[12px] text-outline line-through">104.000 ₫</span>
+</div>
+<span class="text-[11px] text-outline block mb-2">/ Hộp</span>
+<p class="text-[12px] text-primary font-medium mb-3">Còn 24 hộp</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Sản phẩm 2 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-3.5 flex flex-col justify-between hover:border-primary/40 transition-colors relative">
+<div>
+<div class="relative w-full aspect-square bg-[#FFFFFF] rounded-md border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center">
+<span class="absolute top-2 left-2 bg-[#EA580C] text-surface-container-lowest text-[11px] font-bold px-1.5 py-0.5 rounded">-23%</span>
+<img alt="Vitamin C 1000mg Kirkland" class="w-full h-full object-contain p-2" data-alt="Plastic pharmaceutical bottle of Kirkland Vitamin C 1000mg with vibrant orange label on a pristine clinical surface, illuminated with soft diffuse studio light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8_Z2gYrSO7OB5I6Bxs2RHF67vkpTetSPBW1uxMhnbgPmKlK5ysSv0AResO_XLrZu7nKVOWqJa5m3f0SWR7XgWQTmxtuiVo8a8j1fZeBs5kmhILacLEJsoiV3mhHkg6rwC0upIiEgKZgkMPFWmiXZvqAKwARkaF0CruvBkStg1tJln8N8jztuj7pifUHNi9SEJzEOMSN6fMT_FTj32tl74zc_2sfKhWdmLOA8hDiBtIaw1Vlua4hum_QVTqpZBR2ZGEXB1J8GVTA"/>
+</div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Vitamin C 1000mg Kirkland
+            </h3>
+<p class="text-[12px] text-outline line-clamp-1 mb-2">Vitamin C 1000mg</p>
+<div class="flex items-baseline space-x-2 mb-1">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">245.000 ₫</span>
+<span class="text-[12px] text-outline line-through">320.000 ₫</span>
+</div>
+<span class="text-[11px] text-outline block mb-2">/ Hộp</span>
+<p class="text-[12px] text-primary font-medium mb-3">Còn 15 hộp</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Sản phẩm 3 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-3.5 flex flex-col justify-between hover:border-primary/40 transition-colors relative">
+<div>
+<div class="relative w-full aspect-square bg-[#FFFFFF] rounded-md border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center">
+<span class="absolute top-2 left-2 bg-[#EA580C] text-surface-container-lowest text-[11px] font-bold px-1.5 py-0.5 rounded">-24%</span>
+<img alt="Oresol Hydrite" class="w-full h-full object-contain p-2" data-alt="Box of Oresol Hydrite oral rehydration electrolyte powder drink packets on an immaculate healthcare pharmacy countertop under balanced natural light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuSdkLROnFAOonIx9SCewqzQqqtBjurpUIKJT7Y863iVMdWGfHFRICCOxTcVvX3ID9ogagDe9-GllInsGLBvWQcnIOzX6JgwvTQZTBZo9pcqnsEXMxa6nj_i_kQFBFPHk2Vh1Mkv4gqoyv84iPyTf022lwuqo83iQbBpyAtObS5t-NAzbB6HZqFwJfdoF-M3bDVbEuiK8MsL0URXJ4NH8QKf1T7BiGdKTro1C-BP-Hc3HlH2yFZHXeTRaraCrOKjinyv3f271pUw"/>
+</div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Oresol Hydrite
+            </h3>
+<p class="text-[12px] text-outline line-clamp-1 mb-2">Bù nước &amp; điện giải vị cam</p>
+<div class="flex items-baseline space-x-2 mb-1">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">42.000 ₫</span>
+<span class="text-[12px] text-outline line-through">55.000 ₫</span>
+</div>
+<span class="text-[11px] text-outline block mb-2">/ Hộp</span>
+<p class="text-[12px] text-primary font-medium mb-3">Còn 50 hộp</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Sản phẩm 4 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-3.5 flex flex-col justify-between hover:border-primary/40 transition-colors relative">
+<div>
+<div class="relative w-full aspect-square bg-[#FFFFFF] rounded-md border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center">
+<span class="absolute top-2 left-2 bg-[#EA580C] text-surface-container-lowest text-[11px] font-bold px-1.5 py-0.5 rounded">-20%</span>
+<img alt="Men vi sinh Enterogermina" class="w-full h-full object-contain p-2" data-alt="Authentic pharmaceutical box of Enterogermina oral probiotic suspension vials against a pure white background with subtle grey edge definition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALMqh_CMF-WULMm3oKN_XHiyZvP4ac_Qat2UHhSRE-ZUN1mKwLWcbzxmsuVdfo9BW33iJBCzrWKwpjNC8nycZSg0cch1zf2TB3baOahDOXnWsTuQrHGh8YeEcgcnKvSoTUbreBpLu9bkod1tFQ68zjHQuZmFQQjx3l-5gKeQQMfKz67ahMSP-rMYPyDsTPvcKUEkXfz38KWV_4zSdL0z0OnN7TfZ0ddd2U6PH6MGLnhtmPyBOtJFVQfgdqeEQgMspI9udQgqvF-A"/>
+</div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Men vi sinh Enterogermina
+            </h3>
+<p class="text-[12px] text-outline line-clamp-1 mb-2">Bacillus clausii 2 tỷ bào tử</p>
+<div class="flex items-baseline space-x-2 mb-1">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">168.000 ₫</span>
+<span class="text-[12px] text-outline line-through">210.000 ₫</span>
+</div>
+<span class="text-[11px] text-outline block mb-2">/ Hộp</span>
+<p class="text-[12px] text-primary font-medium mb-3">Còn 32 hộp</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Sản phẩm 5 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-3.5 flex flex-col justify-between hover:border-primary/40 transition-colors relative">
+<div>
+<div class="relative w-full aspect-square bg-[#FFFFFF] rounded-md border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center">
+<span class="absolute top-2 left-2 bg-[#EA580C] text-surface-container-lowest text-[11px] font-bold px-1.5 py-0.5 rounded">-20%</span>
+<img alt="Nước muối Natri Clorid 0,9%" class="w-full h-full object-contain p-2" data-alt="Clear medical plastic saline solution bottle of Natri Clorid 0.9% for medical irrigation isolated in a clean pharmaceutical studio environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLqPdX97Qc2zX_Q4pAa5P3PX9bXkpjVVDBj7_6NzBzggG5YGI7W1HxNEdZ6hkCNCfdB7txsfJYUzvtwsJuxrUFmyipi_NpN10txdHEHl07k8r_fvVqMtXgmsfUZyRWHfajkTNvweUZF9IcafC9lp5-mw2MDJRClFQSqjoQXZnCbpFW4Ziv3fhcmFRLEEO1heApL4L0HVg2Peftg51I5equyzjOG3aiGdJAtVBKE8QX7qOu45xEYUoQ7JjXAn2ZLGb_IlCblIBnpQ"/>
+</div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Nước muối Natri Clorid 0,9%
+            </h3>
+<p class="text-[12px] text-outline line-clamp-1 mb-2">Dung dịch rửa sinh lý</p>
+<div class="flex items-baseline space-x-2 mb-1">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">12.000 ₫</span>
+<span class="text-[12px] text-outline line-through">15.000 ₫</span>
+</div>
+<span class="text-[11px] text-outline block mb-2">/ Chai</span>
+<p class="text-[12px] text-primary font-medium mb-3">Còn 100+ chai</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+</div>
+</section>
+<!-- 8. LƯỚI DANH MỤC 8 Ô -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="text-headline-md font-headline-md text-[#0A2540] font-semibold">Danh mục nổi bật</h2>
+<a class="text-primary hover:underline text-body-sm font-body-sm font-medium flex items-center gap-1" href="#tat-ca-danh-muc">
+          Xem tất cả <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+<!-- 1 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#cam-cum">
+<div class="w-12 h-12 rounded-full bg-[#E0F2FE] text-[#0369A1] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">thermostat</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Thuốc cảm cúm</span>
+</a>
+<!-- 2 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#tieu-hoa">
+<div class="w-12 h-12 rounded-full bg-[#FEF3C7] text-[#B45309] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">fluid_med</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Tiêu hoá</span>
+</a>
+<!-- 3 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#vitamin">
+<div class="w-12 h-12 rounded-full bg-[#FCE7F3] text-[#BE185D] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">pill</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Vitamin &amp; khoáng chất</span>
+</a>
+<!-- 4 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#ho-hap">
+<div class="w-12 h-12 rounded-full bg-[#E6F7F5] text-[#0B7A70] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">pulmonology</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Hô hấp</span>
+</a>
+<!-- 5 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#da-lieu">
+<div class="w-12 h-12 rounded-full bg-[#F3E8FF] text-[#7E22CE] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">dermatology</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Da liễu</span>
+</a>
+<!-- 6 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#xuong-khop">
+<div class="w-12 h-12 rounded-full bg-[#FFEDD5] text-[#C2410C] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">orthopedics</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Đau nhức xương khớp</span>
+</a>
+<!-- 7 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#me-be">
+<div class="w-12 h-12 rounded-full bg-[#FEE2E2] text-[#B91C1C] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">child_care</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Mẹ và bé</span>
+</a>
+<!-- 8 -->
+<a class="bg-surface-container-lowest hover:border-primary/40 border border-[#E3E9EF] rounded-xl p-3 flex flex-col items-center text-center transition-all group" href="#thiet-bi-yte">
+<div class="w-12 h-12 rounded-full bg-[#ECFDF5] text-[#047857] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">blood_pressure</span>
+</div>
+<span class="text-label-sm font-label-sm font-medium text-[#0A2540]">Thiết bị y tế</span>
+</a>
+</div>
+</section>
+<!-- 9. KHỐI GỢI Ý CÁ NHÂN HOÁ (AI GỢI Ý) -->
+<section class="bg-gradient-to-b from-[#7C5CFF0A] to-surface-container-lowest rounded-xl border border-tertiary/20 p-6 shadow-sm space-y-6">
+<!-- Header khối AI -->
+<div class="flex flex-wrap items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-1.5 mb-1">
+<span class="inline-flex items-center gap-1 text-label-sm font-label-sm font-semibold text-tertiary bg-[#7C5CFF15] px-2.5 py-0.5 rounded-full border border-tertiary/20">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+              AI gợi ý
+            </span>
+<span class="text-outline-variant text-[13px]">· Cá nhân hoá an toàn</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-[#0A2540] font-bold">Dựa trên sản phẩm bạn đã xem</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-[13px]">
+            Bạn vừa xem <span class="font-medium text-[#0A2540]">Hapacol 650</span> và <span class="font-medium text-[#0A2540]">Prospan siro ho</span>
+</p>
+</div>
+<a class="text-[12px] text-tertiary hover:underline flex items-center gap-1" href="#nguon-goc">
+          Xem thông tin gốc từ nhà sản xuất
+          <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+<!-- Hàng 4 thẻ sản phẩm AI -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Thẻ 1 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-4 flex flex-col justify-between hover:border-tertiary/40 transition-colors relative">
+<div>
+<div class="w-full aspect-square bg-[#FFFFFF] rounded border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center p-2">
+<img alt="Prospan Siro trị ho" class="w-full h-full object-contain" data-alt="Box and amber bottle of Prospan ivy leaf extract cough syrup on clean white pharmacy background with soft shadow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsZUEbyLVEIgxcsbff13qaedRCWZFHeRkd-cDnV2gEsIAq9IXAQ9eplWXjE3gF8jpqw5i4tcF5_oB7C4zAmyO4foITAg-AH_SqPwzqTu4GRHRWg-kg5VwWdJQMB_T2FBtARIV3sNOy8AnhMRItXLtC3XI0cxmWwv_9x82zm-dN0TRlfFlBiVYRgy-IAiscLXqZvXTZXp2Eslr9jDPw0RvM_8Jl0Y0Sn_IGp7SbE2E-sXV_raJ8yT-q5YkazvrEEzyjpM2AKZ3j6g"/>
+</div>
+<!-- Nhãn phụ tím -->
+<div class="inline-block bg-[#7C5CFF12] text-tertiary text-[11px] font-medium px-2 py-0.5 rounded mb-1.5">
+              Cùng nhóm điều trị ho
+            </div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Prospan Siro trị ho chai 100ml
+            </h3>
+<p class="text-[12px] text-outline mb-2">Cao khô lá thường xuân</p>
+<div class="mb-3">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">135.000 ₫</span>
+<span class="text-[11px] text-outline"> / Chai</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Thẻ 2 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-4 flex flex-col justify-between hover:border-tertiary/40 transition-colors relative">
+<div>
+<div class="w-full aspect-square bg-[#FFFFFF] rounded border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center p-2">
+<img alt="Viên ngậm ho Bảo Thanh" class="w-full h-full object-contain" data-alt="Pack of Bao Thanh herbal throat lozenges in pharmacy packaging under soft diffuse illumination on a white desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOlr_-b2xmNwz78P0hSnX1ygBCb1O8GFOjb7rYrFsNj6lNUFUhZxrYPnLMWMS9M0qYqS3MHBNeDiVwSAR-bzhMsfJ_RhQ47HFuX8VfEne5x51DGEmsNjjNaUzctMIbShJSLAop7lx7uc1er0wrl1vODU7GtUWTh8wDlDzvKQC6pFb07McVL2-sC62qF1uVQkhCAwmS_oQyIu5es_HdE5Jwsdzch2aDUL3L2X00XtbcS7FyhJpRNGHGB9tQR8vh-wnELBPpQYkLcw"/>
+</div>
+<!-- Nhãn phụ tím -->
+<div class="inline-block bg-[#7C5CFF12] text-tertiary text-[11px] font-medium px-2 py-0.5 rounded mb-1.5">
+              Thường mua cùng thuốc hạ sốt
+            </div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Viên ngậm ho thảo dược Bảo Thanh
+            </h3>
+<p class="text-[12px] text-outline mb-2">Hộp 5 vỉ x 4 viên ngậm</p>
+<div class="mb-3">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">38.000 ₫</span>
+<span class="text-[11px] text-outline"> / Hộp</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Thẻ 3 -->
+<div class="bg-surface-container-lowest rounded-lg border border-[#E3E9EF] p-4 flex flex-col justify-between hover:border-tertiary/40 transition-colors relative">
+<div>
+<div class="w-full aspect-square bg-[#FFFFFF] rounded border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center p-2">
+<img alt="Xịt họng keo ong Propolis" class="w-full h-full object-contain" data-alt="Korean propolis throat spray spray bottle on a bright clean pharmacy countertop next to clinical props." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX0K4zq7M0JBYoKrO_bySq51_THc3uxOom2A_xJ50UoJBNNnEHgRTnje5QIg41I_gZZUAU-pCFhoBrn-IDe3wLU_h_eBd_bmNyMeizSzbPJAVnIluP5czeGdcllwxovHIQBfg0iCepfpBdoeMPX4a6wbjNTg5aT0kNxq4wOoMiUr27F0iqr5M2Hil-RtPF5UvatJNQR_QTsT37ByXKnh_V2Hnmq4ezSAfAxxXDTdidjsKLAeJz-yApRDg9TxPMkGKM6EQT9SzAuA"/>
+</div>
+<!-- Nhãn phụ tím -->
+<div class="inline-block bg-[#7C5CFF12] text-tertiary text-[11px] font-medium px-2 py-0.5 rounded mb-1.5">
+              Hỗ trợ giảm rát họng hiệu quả
+            </div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Xịt họng keo ong Propolis Hàn Quốc
+            </h3>
+<p class="text-[12px] text-outline mb-2">Chiết xuất keo ong thiên nhiên 30ml</p>
+<div class="mb-3">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">165.000 ₫</span>
+<span class="text-[11px] text-outline"> / Chai</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-surface-container-lowest py-2 rounded text-label-sm font-label-sm font-medium transition-colors">
+            Thêm vào giỏ
+          </button>
+</div>
+<!-- Thẻ 4: THUỐC KÊ ĐƠN ĐẶC BIỆT -->
+<div class="bg-surface-container-lowest rounded-lg border-2 border-red-200 p-4 flex flex-col justify-between relative bg-red-50/20">
+<div>
+<div class="relative w-full aspect-square bg-[#FFFFFF] rounded border border-[#EDF1F5] mb-3 overflow-hidden flex items-center justify-center p-2">
+<!-- Badge đỏ Thuốc kê đơn -->
+<span class="absolute top-2 left-2 bg-[#DC2626] text-surface-container-lowest text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[13px]">prescriptions</span>
+                Thuốc kê đơn
+              </span>
+<img alt="Augmentin 625mg" class="w-full h-full object-contain" data-alt="Pharmaceutical packaging of Augmentin 625mg antibiotic tablets with red prescription warning strip on sterile white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZIUa7X1gJu0D_FsljrzvfqGBkfKZK17O7bGhMh2uj4_0eK7gjIZmGNnbe7GsRkY9nR7wJtIoJ8E_lgkvOHVawyuYfGvsNIOecedRVOOAldAvcK-T_7pobLSi40ufKlBJWJ1abG_0fQElJ9naUoeUV8TT6-CIezp1cQQ9sVJ-fBDaXoTc7WKwtnsrfoJjD3RAtTbYVyU9rMJDN2_GedbM572F9tQ9PqKk7iuBzvo6CbJcbysvtowXEMdisAKWdvsIlovM8N484Mw"/>
+</div>
+<h3 class="text-label-md font-label-md font-semibold text-[#0A2540] line-clamp-2 mb-1">
+              Augmentin 625mg Kháng sinh Amoxicillin
+            </h3>
+<p class="text-[12px] text-outline mb-2">Amoxicillin / Clavulanic acid</p>
+<div class="mb-3">
+<span class="text-headline-md font-headline-md font-bold text-[#0A2540] text-[16px]">195.000 ₫</span>
+<span class="text-[11px] text-outline"> / Hộp</span>
+<!-- Dòng đỏ cảnh báo bắt buộc -->
+<p class="text-[11px] text-[#DC2626] font-semibold mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                Cần tư vấn trước khi bán
+              </p>
+</div>
+</div>
+<!-- Nút outline viền teal tư vấn dược sĩ -->
+<button class="w-full border border-primary text-primary hover:bg-primary/5 py-2 rounded text-label-sm font-label-sm font-medium transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">support_agent</span>
+            Tư vấn dược sĩ
+          </button>
+</div>
+</div>
+<!-- Disclaimer luật định y tế -->
+<div class="border-t border-tertiary/10 pt-3 flex items-center justify-between text-[12px] text-on-surface-variant">
+<p class="italic flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline">info</span>
+          AI gợi ý nhóm sản phẩm, không chẩn đoán và không thay thế chỉ định của bác sĩ.
+        </p>
+<span class="text-[11px] text-outline hidden md:inline">Thuật toán đối soát Dược thư Quốc gia</span>
+</div>
+</section>
+<!-- 10. GÓC SỨC KHOẺ -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-headline-md font-headline-md text-[#0A2540] font-bold">Góc sức khoẻ &amp; Lời khuyên Dược sĩ</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-[13px]">Kiến thức sử dụng thuốc đúng liều lượng, an toàn từ dược sĩ đại học</p>
+</div>
+<a class="text-primary hover:underline text-body-sm font-body-sm font-medium flex items-center gap-1" href="#tat-ca-bai-viet">
+          Xem thêm bài viết <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Bài 1 -->
+<article class="bg-surface-container-lowest rounded-xl border border-[#E3E9EF] overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
+<div>
+<div class="w-full h-48 overflow-hidden bg-surface-container-low">
+<img alt="Phân biệt sốt xuất huyết và cảm cúm mùa" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" data-alt="Close-up of a doctor explaining safe Paracetamol dosage guidelines with medication packs on a bright wooden medical consultation desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXlsFI0xbgGqewoL0Gn8Kf0mWUJtO5nNY_Lklajms8ECL6T3eVeyXK2qOPqgd_WB9GKIiOkC_XveF_OzwAZZNQAAIchC0Xskr_alW4VJuGggSNGB06atXZJhJ9NLHyOzB2pUdCVZkIXWyClJIzA6aAyYJd1RjxOoGuzNEccLTOQqdp_zv6gF1ZUZ3HgvDIgo8N3Q_Z6ZrTRuuIs795K8X6B6tRoQHFxkGoU_-ueSzscPW4OYRDZUsqyQtK45mlmsKSa01clP9Axg"/>
+</div>
+<div class="p-4">
+<span class="text-[11px] text-primary font-semibold uppercase tracking-wider block mb-1">Dược lý ứng dụng</span>
+<h3 class="text-headline-md font-headline-md text-[#0A2540] text-[16px] font-bold line-clamp-2 mb-2 leading-snug">
+                Phân biệt sốt xuất huyết và cảm cúm mùa: Khi nào cần nhập viện ngay?
+              </h3>
+<p class="text-[13px] text-on-surface-variant line-clamp-2 mb-3">
+                Những dấu hiệu cảnh báo nguy hiểm trong 3 ngày đầu và nguyên tắc bù điện giải an toàn tại nhà.
+              </p>
+</div>
+</div>
+<div class="px-4 pb-4 pt-2 border-t border-[#EDF1F5] flex items-center justify-between text-[12px] text-on-surface-variant">
+<span>Dược sĩ Nguyễn Minh · 12/09/2026</span>
+<span class="flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+              4 phút đọc
+            </span>
+</div>
+</article>
+<!-- Bài 2 -->
+<article class="bg-surface-container-lowest rounded-xl border border-[#E3E9EF] overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
+<div>
+<div class="w-full h-48 overflow-hidden bg-surface-container-low">
+<img alt="Uống kháng sinh bao nhiêu ngày thì ngưng?" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" data-alt="Macro medical photography of antibiotic capsules and friendly guidance chart on safe compliance in a clinical pharmacy setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABBsIeknEXXD0a2_F8-5TLLlk2D2WUtXGBle_A_1by8eSbUKLsCJOJ0-hEH-CBt9u9wKF9z-xW88GXjSKqxozHbTx01AoD3uEyugqWN10S3XWuMp_BrEnaBrK8dFCSR_aq2no1CXtIC8MQc3FP4CSq9r1f-2wW_JfTLRkwv-X_iFBc-HNaZdc8uqNjyDBs29KCzbtlifRlG_eqJtOLNZC8xy-fr3NkmV9iGBmc558yXeUN1eflkJkktVsdYAEaI7yHc6eqSKyq5Q"/>
+</div>
+<div class="p-4">
+<span class="text-[11px] text-primary font-semibold uppercase tracking-wider block mb-1">Cảnh báo dùng thuốc</span>
+<h3 class="text-headline-md font-headline-md text-[#0A2540] text-[16px] font-bold line-clamp-2 mb-2 leading-snug">
+                Uống kháng sinh bao nhiêu ngày thì ngưng? Hiểm hoạ kháng kháng sinh
+              </h3>
+<p class="text-[13px] text-on-surface-variant line-clamp-2 mb-3">
+                Tuyệt đối không tự ý ngưng thuốc khi vừa hết triệu chứng sốt hoặc đau rát họng.
+              </p>
+</div>
+</div>
+<div class="px-4 pb-4 pt-2 border-t border-[#EDF1F5] flex items-center justify-between text-[12px] text-on-surface-variant">
+<span>Dược sĩ Trần Thu Hà · 10/09/2026</span>
+<span class="flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+              5 phút đọc
+            </span>
+</div>
+</article>
+<!-- Bài 3 -->
+<article class="bg-surface-container-lowest rounded-xl border border-[#E3E9EF] overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
+<div>
+<div class="w-full h-48 overflow-hidden bg-surface-container-low">
+<img alt="Tương tác thuốc nguy hiểm giữa thuốc huyết áp và giảm đau NSAIDs" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" data-alt="Elderly patient consulting with a caring pharmacist regarding multiple chronic prescription medications under warm clinical pharmacy lights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSN3rxRYxD_BFpMXmDRP0E8xWR_a86PS8RY63Q2RRNrVNBrug61pYyRfo1y1LekqlwQ4aZ5HPNRzfvSbESP5VO4SZu1U9JRpLNNeOrvTnPqva0M9zDshk7Si5qUkwet13WzMgrji9-RFV_rA_fAZTRrOkcnINaMATZ2aQPG8ayXAPkZ5cY6dX7Pd4Ind3aAa8_hm7heC4-VtfpU56Slm_vtl2cMxhjwuOQX7nZ5BhIbqfaXgE7SuFR5V9pcb-faD8fFOgdcsLX7g"/>
+</div>
+<div class="p-4">
+<span class="text-[11px] text-tertiary font-semibold uppercase tracking-wider block mb-1">Cơ sở dữ liệu AI</span>
+<h3 class="text-headline-md font-headline-md text-[#0A2540] text-[16px] font-bold line-clamp-2 mb-2 leading-snug">
+                Tương tác nguy hiểm giữa thuốc huyết áp và thuốc giảm đau NSAIDs
+              </h3>
+<p class="text-[13px] text-on-surface-variant line-clamp-2 mb-3">
+                Cách nhận biết sớm nguy cơ tăng huyết áp đột ngột và suy giảm chức năng thận khi phối hợp thuốc.
+              </p>
+</div>
+</div>
+<div class="px-4 pb-4 pt-2 border-t border-[#EDF1F5] flex items-center justify-between text-[12px] text-on-surface-variant">
+<span>Dược sĩ Lê Hoàng · 08/09/2026</span>
+<span class="flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+              3 phút đọc
+            </span>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- 11. FOOTER NAVY ĐẬM (#0A2540) CHỮ TRẮNG SANG TRỌNG -->
+<footer class="w-full bg-[#0A2540] text-surface-container-lowest pt-14 pb-10 border-t border-outline-variant/20 mt-12">
+<div class="max-w-[1200px] mx-auto px-6 space-y-12">
+<!-- 4 Cột nội dung -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Cột 1: Về MediVia -->
+<div class="space-y-4">
+<div class="flex items-center gap-1.5 text-surface-container-lowest font-headline-md text-headline-md font-bold tracking-tight">
+<span>MediV</span>
+<span class="relative inline-flex items-center justify-center">
+<span>i</span>
+<span class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#85f6e6] rounded-full"></span>
+</span>
+<span>a</span>
+<span class="ml-1 w-4 h-4 rounded bg-[#0B7A70] text-surface-container-lowest flex items-center justify-center text-[11px]">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">local_hospital</span>
+</span>
+</div>
+<p class="text-body-sm font-body-sm text-surface-container-lowest/80 text-[13px] leading-relaxed">
+            Hệ thống nhà thuốc kỹ thuật số kết hợp AI tiên phong tại Việt Nam. Tầm nhìn y tế thông minh, sứ mệnh phụng sự sức khoẻ cộng đồng bằng sự trung thực và nghiêm cẩn y học.
+          </p>
+<div class="space-y-1.5 text-[13px] text-surface-container-lowest/90">
+<p class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary-fixed">call</span>
+              Hotline Dược sĩ: <strong>1800 6928</strong> (Miễn phí)
+            </p>
+<p class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary-fixed">mail</span>
+              hotro@medivia.vn
+            </p>
+</div>
+</div>
+<!-- Cột 2: Danh mục -->
+<div class="space-y-3">
+<h4 class="text-headline-md font-headline-md text-surface-container-lowest text-[16px] font-semibold tracking-wide">
+            Danh mục thuốc
+          </h4>
+<ul class="space-y-2 text-body-sm font-body-sm text-surface-container-lowest/80 text-[13px]">
+<li><a class="hover:text-primary-fixed transition-colors" href="#thuoc-ke-don">Thuốc kê đơn</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#thuoc-khong-ke-don">Thuốc không kê đơn</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#thuc-pham-chuc-nang">Thực phẩm chức năng</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#thiet-bi-do">Thiết bị đo đường huyết</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#duoc-my-pham">Dược mỹ phẩm</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#tra-cuu-tuong-tac">Tra cứu tương tác thuốc</a></li>
+</ul>
+</div>
+<!-- Cột 3: Hỗ trợ khách hàng -->
+<div class="space-y-3">
+<h4 class="text-headline-md font-headline-md text-surface-container-lowest text-[16px] font-semibold tracking-wide">
+            Hỗ trợ khách hàng
+          </h4>
+<ul class="space-y-2 text-body-sm font-body-sm text-surface-container-lowest/80 text-[13px]">
+<li><a class="hover:text-primary-fixed transition-colors" href="#chinh-sach-giao-hang">Chính sách giao hàng 2h</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#huong-dan-tai-don">Hướng dẫn tải đơn thuốc</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#chinh-sach-doi-tra">Chính sách đổi trả 30 ngày</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#quy-che-tu-van-ai">Quy chế tư vấn AI &amp; Minh bạch y tế</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#he-thong-nha-thuoc">Hệ thống nhà thuốc gần bạn</a></li>
+<li><a class="hover:text-primary-fixed transition-colors" href="#hotline-khieu-nai">Hotline khiếu nại chất lượng dịch vụ</a></li>
+</ul>
+</div>
+<!-- Cột 4: Chứng nhận & Pháp lý -->
+<div class="space-y-3">
+<h4 class="text-headline-md font-headline-md text-surface-container-lowest text-[16px] font-semibold tracking-wide">
+            Chứng nhận &amp; Tiêu chuẩn
+          </h4>
+<p class="text-[12px] text-surface-container-lowest/70 leading-relaxed">
+            Hệ thống nhà thuốc đạt tiêu chuẩn Thực hành tốt nhà thuốc (GPP) được Sở Y tế TP.HCM kiểm định định kỳ.
+          </p>
+<div class="flex flex-wrap gap-2 pt-2">
+<div class="bg-surface-container-lowest/10 border border-surface-container-lowest/20 rounded px-2.5 py-1.5 text-[11px] font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#85f6e6]">verified</span>
+              Chuẩn GPP Bộ Y Tế
+            </div>
+<div class="bg-surface-container-lowest/10 border border-surface-container-lowest/20 rounded px-2.5 py-1.5 text-[11px] font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#85f6e6]">shield</span>
+              Bộ Công Thương
+            </div>
+<div class="bg-surface-container-lowest/10 border border-surface-container-lowest/20 rounded px-2.5 py-1.5 text-[11px] font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#85f6e6]">qr_code_2</span>
+              Tem chống giả
+            </div>
+</div>
+</div>
+</div>
+<!-- Dòng bản quyền & pháp lý cuối cùng -->
+<div class="border-t border-surface-container-lowest/10 pt-6 space-y-2 text-[12px] text-surface-container-lowest/70 leading-relaxed">
+<p>
+          Giấy phép kinh doanh dược số 0106/HCM do Sở Y tế TP.HCM cấp ngày 15/03/2023 · Người chịu trách nhiệm chuyên môn: DS. Trần Thu Hà (CCHN Dược số 004128/HCM)
+        </p>
+<p class="text-surface-container-lowest/60">
+          © 2025 MediVia Pharmacy Ltd. GPĐKKD số 0102030405 do Sở Y tế TP.HCM cấp. Mọi thông tin y tế chỉ mang tính tham khảo, không thay thế chẩn đoán chuyên môn.
+        </p>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Thanh toán - MediVia</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface": "#f4f6ff",
+            "error-dim": "#9f0519",
+            "tertiary": "#5d38df",
+            "secondary-dim": "#992206",
+            "outline-variant": "#a0aec4",
+            "on-error-container": "#570008",
+            "on-surface": "#222f41",
+            "on-secondary-container": "#8d1900",
+            "on-tertiary-fixed": "#180058",
+            "inverse-surface": "#020f1f",
+            "on-primary": "#c0fff4",
+            "surface-tint": "#00675e",
+            "tertiary-fixed": "#b4a4ff",
+            "surface-container-low": "#eaf1ff",
+            "secondary": "#aa2e13",
+            "on-primary-fixed-variant": "#00635a",
+            "background": "#f4f6ff",
+            "error": "#b31b25",
+            "inverse-primary": "#85f6e6",
+            "on-tertiary": "#f6f0ff",
+            "secondary-fixed-dim": "#ffb09e",
+            "inverse-on-surface": "#909eb4",
+            "error-container": "#fb5151",
+            "primary-fixed": "#7ff0e0",
+            "on-secondary-fixed": "#6a1100",
+            "on-primary-fixed": "#00443d",
+            "secondary-fixed": "#ffc4b7",
+            "primary-container": "#7ff0e0",
+            "on-primary-container": "#005951",
+            "on-secondary": "#ffefec",
+            "surface-container-lowest": "#ffffff",
+            "secondary-container": "#ffc4b7",
+            "surface-container": "#dce9ff",
+            "outline": "#6a788c",
+            "tertiary-fixed-dim": "#a794ff",
+            "primary": "#00675e",
+            "on-secondary-fixed-variant": "#9a2307",
+            "on-surface-variant": "#4f5c70",
+            "on-error": "#ffefee",
+            "tertiary-dim": "#5127d3",
+            "surface-variant": "#cadefe",
+            "surface-container-highest": "#cadefe",
+            "on-tertiary-container": "#31009a",
+            "surface-bright": "#f4f6ff",
+            "surface-container-high": "#d3e4ff",
+            "primary-fixed-dim": "#70e1d2",
+            "on-background": "#222f41",
+            "surface-dim": "#c0d6f7",
+            "primary-dim": "#005a52",
+            "on-tertiary-fixed-variant": "#3a00b2",
+            "tertiary-container": "#b4a4ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "margin": "1.5rem",
+            "gutter": "1rem",
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Be Vietnam Pro"],
+            "headline-md": ["Be Vietnam Pro"],
+            "headline-lg": ["Be Vietnam Pro"],
+            "label-md": ["Inter"],
+            "label-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["2.25rem", { "lineHeight": "1.15", "fontWeight": "700" }],
+            "headline-md": ["1.25rem", { "lineHeight": "1.25", "fontWeight": "600" }],
+            "headline-lg": ["1.75rem", { "lineHeight": "1.2", "fontWeight": "600" }],
+            "label-md": ["0.875rem", { "lineHeight": "1.25", "fontWeight": "500" }],
+            "label-sm": ["0.75rem", { "lineHeight": "1.2", "fontWeight": "500" }],
+            "body-lg": ["1.125rem", { "lineHeight": "1.5", "fontWeight": "400" }],
+            "body-md": ["1rem", { "lineHeight": "1.5", "fontWeight": "400" }],
+            "body-sm": ["0.875rem", { "lineHeight": "1.4", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col justify-between">
+<!-- 1. HEADER ĐƠN GIẢN HOÁ (Checkout Minimal Header) -->
+<header class="w-full bg-surface-container-lowest border-b border-outline-variant/30 sticky top-0 z-40">
+<div class="max-w-[1280px] mx-auto px-6 h-16 flex items-center justify-between">
+<!-- Bên trái: Logo + Nhãn phụ -->
+<div class="flex items-center gap-3">
+<a class="flex items-center gap-2 text-primary focus:outline-none" href="#">
+<div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[24px]">local_pharmacy</span>
+</div>
+<span class="font-headline-md text-headline-md tracking-tight font-bold text-primary">MediVia</span>
+</a>
+<div class="h-5 w-[1px] bg-outline-variant/40 mx-1"></div>
+<span class="font-label-md text-label-md font-semibold text-on-surface-variant">Thanh toán</span>
+</div>
+<!-- Bên phải: Hỗ trợ khách hàng -->
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+</div>
+<div class="text-right">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cần hỗ trợ? </span>
+<a class="font-label-md text-label-md font-bold text-primary hover:underline" href="tel:18006928">1800 6928</a>
+<span class="font-label-sm text-label-sm text-outline ml-1">(Miễn phí)</span>
+</div>
+</div>
+</div>
+</header>
+<!-- 2. THANH TIẾN TRÌNH 3 BƯỚC (Stepper Bar) -->
+<section class="w-full py-6">
+<div class="max-w-[1280px] mx-auto px-6">
+<div class="flex items-center justify-center max-w-xl mx-auto">
+<!-- Bước 1: Giỏ hàng (Đã xong) -->
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">1 Giỏ hàng</span>
+</div>
+<!-- Đường nối 1-2 (Đã hoàn thành) -->
+<div class="flex-1 h-[2px] bg-primary mx-3"></div>
+<!-- Bước 2: Thanh toán (Đang thực hiện) -->
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-label-sm">
+            2
+          </div>
+<span class="font-label-md text-label-md font-bold text-primary">2 Thanh toán</span>
+</div>
+<!-- Đường nối 2-3 (Chưa tới) -->
+<div class="flex-1 h-[2px] bg-outline-variant/30 mx-3"></div>
+<!-- Bước 3: Hoàn tất (Chưa tới) -->
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full border border-outline-variant/50 bg-surface-container-lowest flex items-center justify-center text-outline font-medium text-label-sm">
+            3
+          </div>
+<span class="font-label-md text-label-md font-medium text-outline">3 Hoàn tất</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. BỐ CỤC 2 CỘT TỔNG THỂ -->
+<main class="max-w-[1280px] mx-auto px-6 pb-16 flex-1 w-full">
+<div class="grid grid-cols-12 gap-8 items-start">
+<!-- CỘT TRÁI (Khoảng 62% ~ 7/12 hoặc 8/12 - Sử dụng col-span-7 hoặc col-span-8 tương ứng) -->
+<div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-6">
+<!-- THẺ 1: Thông tin người nhận -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-6 shadow-sm">
+<div class="flex items-center gap-2 mb-5">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm font-bold">1</span>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Thông tin người nhận</h2>
+</div>
+<div class="space-y-4">
+<!-- Hàng 1: Họ tên + SĐT -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="recipient-name">Họ và tên</label>
+<input class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="recipient-name" type="text" value="Nguyễn Thị Lan"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="recipient-phone">Số điện thoại</label>
+<input class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="recipient-phone" type="tel" value="0912 345 678"/>
+</div>
+</div>
+<!-- Hàng 2: Email nhận hoá đơn -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="recipient-email">Email nhận hoá đơn</label>
+<input class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="recipient-email" type="email" value="lan.nguyen@email.com"/>
+</div>
+<!-- Hàng 3: 3 ô chọn Tỉnh / Quận / Phường -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="city-select">Tỉnh / Thành phố</label>
+<select class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="city-select">
+<option selected="">TP. Hồ Chí Minh</option>
+<option>Hà Nội</option>
+<option>Đà Nẵng</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="district-select">Quận / Huyện</label>
+<select class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="district-select">
+<option selected="">Quận 3</option>
+<option>Quận 1</option>
+<option>Quận 10</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="ward-select">Phường / Xã</label>
+<select class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="ward-select">
+<option selected="">Phường Võ Thị Sáu</option>
+<option>Phường Đa Kao</option>
+<option>Phường 5</option>
+</select>
+</div>
+</div>
+<!-- Hàng 4: Địa chỉ cụ thể -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="street-address">Địa chỉ cụ thể</label>
+<input class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 px-3" id="street-address" type="text" value="142 Nguyễn Đình Chiểu"/>
+</div>
+<!-- Hàng 5: Chip lựa chọn vị trí + Checkbox -->
+<div class="pt-1 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant mr-1">Loại địa chỉ:</span>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary bg-primary/10 text-primary text-label-sm font-semibold transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">home</span>
+                  Nhà riêng
+                </button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant/40 bg-surface-container-lowest text-on-surface-variant text-label-sm font-medium hover:border-outline transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">apartment</span>
+                  Cơ quan
+                </button>
+</div>
+<label class="inline-flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="rounded border-outline-variant/50 text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Lưu làm địa chỉ mặc định</span>
+</label>
+</div>
+</div>
+</section>
+<!-- THẺ 2: Hình thức nhận hàng -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-6 shadow-sm">
+<div class="flex items-center gap-2 mb-5">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm font-bold">2</span>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Hình thức nhận hàng</h2>
+</div>
+<div class="space-y-3">
+<!-- Thẻ 1: Đang chọn - Giao nhanh 2 giờ -->
+<label class="relative flex items-center justify-between p-4 rounded-xl border-2 border-primary bg-primary/5 cursor-pointer transition-all">
+<div class="flex items-center gap-3">
+<input checked="" class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="shipping_method" type="radio"/>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">bolt</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">Giao nhanh 2 giờ</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Dự kiến nhận trước 16:30 hôm nay, 16/09/2026</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-md text-label-md font-bold text-on-surface">25.000 ₫</span>
+</div>
+</label>
+<!-- Thẻ 2: Giao tiêu chuẩn -->
+<label class="relative flex items-center justify-between p-4 rounded-xl border border-outline-variant/30 hover:border-outline bg-surface-container-lowest cursor-pointer transition-all">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="shipping_method" type="radio"/>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[20px]">local_shipping</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Giao tiêu chuẩn</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Dự kiến 17/09 – 18/09/2026</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-md text-label-md font-bold text-primary">Miễn phí</span>
+</div>
+</label>
+<!-- Thẻ 3: Nhận tại nhà thuốc -->
+<label class="relative flex items-center justify-between p-4 rounded-xl border border-outline-variant/30 hover:border-outline bg-surface-container-lowest cursor-pointer transition-all">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="shipping_method" type="radio"/>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[20px]">storefront</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Nhận tại nhà thuốc</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">MediVia Quận 3 — 89 Cao Thắng, cách bạn 1,2 km. Sẵn hàng sau 30 phút</p>
+</div>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-label-md text-label-md font-bold text-primary">Miễn phí</span>
+<a class="text-label-sm font-label-sm text-primary hover:underline mt-0.5" href="#">Đổi nhà thuốc</a>
+</div>
+</label>
+<!-- Ghi chú cho dược sĩ -->
+<div class="pt-3">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1.5" for="pharmacist-note">Ghi chú cho dược sĩ</label>
+<div class="relative">
+<input class="w-full rounded-lg border-outline-variant/40 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2.5 pl-9 pr-3" id="pharmacist-note" placeholder="Ví dụ: gọi trước khi giao, tôi đang dùng thuốc huyết áp" type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-outline-variant text-[18px]">edit_note</span>
+</div>
+</div>
+</div>
+</section>
+<!-- THẺ 3: Phương thức thanh toán -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-6 shadow-sm">
+<div class="flex items-center gap-2 mb-5">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm font-bold">3</span>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Phương thức thanh toán</h2>
+</div>
+<div class="space-y-3">
+<!-- Phương thức 1: COD (Đang chọn) -->
+<label class="relative flex items-start gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5 cursor-pointer transition-all">
+<input checked="" class="w-4 h-4 mt-1 text-primary focus:ring-primary border-outline-variant" name="payment_method" type="radio"/>
+<div class="flex-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">payments</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">Thanh toán khi nhận hàng (COD)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Kiểm tra thuốc và hoá đơn trước khi trả tiền</p>
+</div>
+</label>
+<!-- Phương thức 2: MoMo -->
+<label class="relative flex items-center gap-3 p-4 rounded-xl border border-outline-variant/30 hover:border-outline bg-surface-container-lowest cursor-pointer transition-all">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="payment_method" type="radio"/>
+<div class="w-6 h-6 rounded bg-[#A50064] text-white flex items-center justify-center text-label-sm font-bold">M</div>
+<div class="flex-1">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Ví MoMo</span>
+</div>
+</label>
+<!-- Phương thức 3: ZaloPay -->
+<label class="relative flex items-center gap-3 p-4 rounded-xl border border-outline-variant/30 hover:border-outline bg-surface-container-lowest cursor-pointer transition-all">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="payment_method" type="radio"/>
+<div class="w-6 h-6 rounded bg-[#0068FF] text-white flex items-center justify-center text-label-sm font-bold">Z</div>
+<div class="flex-1">
+<span class="font-label-md text-label-md font-semibold text-on-surface">ZaloPay</span>
+</div>
+</label>
+<!-- Phương thức 4: VNPay -->
+<label class="relative flex items-center gap-3 p-4 rounded-xl border border-outline-variant/30 hover:border-outline bg-surface-container-lowest cursor-pointer transition-all">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="payment_method" type="radio"/>
+<div class="w-6 h-6 rounded bg-[#E11B22] text-white flex items-center justify-center text-label-sm font-bold">V</div>
+<div class="flex-1">
+<span class="font-label-md text-label-md font-semibold text-on-surface">VNPay — quét mã QR</span>
+</div>
+</label>
+<!-- Phương thức 5: Thẻ ATM / Visa / Mastercard -->
+<label class="relative flex items-center gap-3 p-4 rounded-xl border border-outline-variant/30 hover:border-outline bg-surface-container-lowest cursor-pointer transition-all">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" name="payment_method" type="radio"/>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">credit_card</span>
+<div class="flex-1">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Thẻ ATM / Visa / Mastercard</span>
+</div>
+</label>
+<!-- Hoá đơn điện tử cho công ty -->
+<div class="pt-4 border-t border-outline-variant/20">
+<label class="inline-flex items-center gap-2 cursor-pointer select-none mb-3">
+<input checked="" class="rounded border-outline-variant/50 text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Tôi cần hoá đơn điện tử cho công ty</span>
+</label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1" for="company-name">Tên công ty</label>
+<input class="w-full rounded-lg border-outline-variant/30 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3" id="company-name" placeholder="Công ty TNHH..." type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1" for="tax-code">Mã số thuế</label>
+<input class="w-full rounded-lg border-outline-variant/30 bg-surface-bright text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3" id="tax-code" placeholder="010..." type="text"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- THẺ 4: Đơn thuốc kê đơn (Chuẩn y tế GPP) -->
+<section class="bg-primary/5 rounded-xl border border-primary/20 p-6 shadow-sm">
+<div class="flex items-center gap-2 mb-3">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm font-bold">4</span>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Đơn thuốc kê đơn</h2>
+</div>
+<div class="flex items-start gap-2.5 p-3 bg-surface-container-lowest rounded-lg border border-primary/20 mb-4">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-on-surface font-medium">
+              Đơn của bạn có 1 thuốc kê đơn cần dược sĩ xác nhận: <span class="font-bold text-primary">Augmentin 625mg</span>
+</p>
+</div>
+<!-- Upload Dropzone -->
+<div class="border-2 border-dashed border-primary/40 bg-surface-container-lowest/80 hover:bg-surface-container-lowest p-6 rounded-lg text-center cursor-pointer transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-[26px]">upload_file</span>
+</div>
+<p class="font-label-md text-label-md font-bold text-primary">Tải ảnh đơn thuốc từ bác sĩ</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Chấp nhận JPG, PNG, PDF dưới 10 MB</p>
+</div>
+<!-- Thumbnail ảnh đã tải mẫu -->
+<div class="mt-4 p-3 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">description</span>
+</div>
+<div>
+<p class="font-label-md text-label-md font-semibold text-on-surface">don-thuoc-bs-hoang.jpg</p>
+<p class="font-label-sm text-label-sm text-outline">1.8 MB · Đã tải lên</p>
+</div>
+</div>
+<button class="text-error-dim hover:text-error p-1.5 rounded transition-colors" title="Xoá tệp" type="button">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-outline text-[16px]">verified_user</span>
+            Dược sĩ sẽ gọi xác nhận trong 15 phút trước khi soạn thuốc kê đơn
+          </p>
+</section>
+</div>
+<!-- CỘT PHẢI (Khoảng 38% ~ Sticky Card Đơn hàng) -->
+<div class="col-span-12 lg:col-span-5 xl:col-span-4">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-6 shadow-sm sticky top-20">
+<div class="flex items-center justify-between pb-4 border-b border-outline-variant/20">
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Đơn hàng của bạn</h3>
+<span class="font-label-sm text-label-sm bg-surface-container-low text-on-surface-variant px-2.5 py-1 rounded-full font-semibold">5 sản phẩm</span>
+</div>
+<!-- Danh sách 5 sản phẩm -->
+<div class="py-4 space-y-4 max-h-[360px] overflow-y-auto pr-1">
+<!-- SP 1 -->
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-lg border border-outline-variant/30 object-cover flex-shrink-0" data-alt="A clean, minimalist high-key pharmacy product photograph of a white medicine bottle for Hapacol on an immaculate neutral grey surface. The studio lighting is soft and medical grade, creating smooth subtle gradients and professional trust with no intense reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr4Ha0mn4ZuSSVSz6SGtjun5d6tKxNPo4ImPGqH9GTQL8SRL1BJM6rr3RIk-T122v8Khiusp6MJxeXTAG8k89s0Gbmnet1jC2adGQtRVlCB0ZlXYGzet9jZhpjgwxf5kUuQgNycsvI5VicPs6Ur-dnrqiAlCTZ-ppH82hsJVGylDWNi9ek69IgzYY3CqSIVbJq9gH37xUaWO_H9sMn9jJCqEyMWv_COvtx6IHcHja6dcNV2x4fsaIvjq--i2fepI46JkjKQYHfDQ"/>
+<div class="flex-1 min-w-0">
+<p class="font-label-md text-label-md font-semibold text-on-surface truncate">Hapacol 650 viên sủi</p>
+<span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-container text-on-surface-variant">Hộp × 2</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">156.000 ₫</span>
+</div>
+<!-- SP 2 -->
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-lg border border-outline-variant/30 object-cover flex-shrink-0" data-alt="A pharmaceutical product photograph showing a blister pack of Panadol Extra with red branding resting neatly on a sterile clinic white marble background. The atmosphere is quiet, clinical, and reassuring with precise studio softbox illumination." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-juXSbI6EAZ5cu2uVsc806ACmiASZJ1CV6SNk1E7PJT8BeiOx1fiWkWJRnwaPOyZW462rBUCYhLiN4PIbZNmUvU98hDGLHKT0xVcW12K2v7qZ3RkKZOrDb8qzWRiSc6Pnv3Iar1AW2DGE1wf_MNb9eroXV9780ijwG1Lc-KigevVWDW9uzH-H2hidMvbnJzHzfzl6-bSa3UhkH9jxrq5zbxQhNyedzobaLDbOGQP9_E5zt7m8_S-FpWPecx5_N-UDwiy5QT2gPw"/>
+<div class="flex-1 min-w-0">
+<p class="font-label-md text-label-md font-semibold text-on-surface truncate">Panadol Extra đỏ</p>
+<span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-container text-on-surface-variant">Vỉ × 3</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">34.500 ₫</span>
+</div>
+<!-- SP 3 -->
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-lg border border-outline-variant/30 object-cover flex-shrink-0" data-alt="A clinical studio product display of a health supplement carton of Vitamin C 1000mg with subtle citrus accents set on a soft ivory pharmaceutical display riser. Crisp lighting with clean minimal shadows highlights its authentic healthcare grade quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGqLxAKw4cVsGwi7TadJiYF3dDH_zJVktMuTF4aQxw4EKOhhAJTfj42uLUeiToVr961KUAftGvNEeiKEg7lYxZ4t7qqM4FZ6_qdCEQcq2vfwwQmOr3iHVGDBOikd5yHPEeonmzGu9hEX9_hwjDkbEf71CHO_04B11dcbKEagF1RxC9vQa_CEjFnVqqFuHQKI0LEpYHplVhlulcjKdKQm7yTRAFlxfN0LBW_VcVjq9ZnKIk6UBgHQuJnIadJdUMMMIREub7kzfS0g"/>
+<div class="flex-1 min-w-0">
+<p class="font-label-md text-label-md font-semibold text-on-surface truncate">Vitamin C 1000mg</p>
+<span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-container text-on-surface-variant">Hộp × 1</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">96.000 ₫</span>
+</div>
+<!-- SP 4 -->
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-lg border border-outline-variant/30 object-cover flex-shrink-0" data-alt="A commercial pharmacy product image of an electrolyte oral rehydration sachet package Oresol Hydrite in neat professional laboratory packaging. The lighting is pristine white and gentle, emphasizing clinical purity and reliable health recovery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUJS4mxi3OdsbLJXPxBszsA9rFgby3H2dwIEO-1I2eGbFTvXAWC7RJFfDchmkfavgCPLHjdhnI3Ds2wPwVmokmF8Zr-_m1hJwgEnImXNewchySU9pmOakZDkHH8Ia1JhhRuPXF--8g675xMtXRa3n-wjPniarHl3yJ430RmEt87y02nnLkW0vNMEtfYMrmoDp_x14w0-rMnyFtzrGpXUdBMcmdSersHQmGFruPCrt4UhWZrvP8pn1KGzwvsU6S848x70Z5qJFPYw"/>
+<div class="flex-1 min-w-0">
+<p class="font-label-md text-label-md font-semibold text-on-surface truncate">Oresol Hydrite</p>
+<span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-container text-on-surface-variant">Hộp × 2</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">84.000 ₫</span>
+</div>
+<!-- SP 5: Thuốc kê đơn -->
+<div class="flex items-start gap-3">
+<img class="w-12 h-12 rounded-lg border border-outline-variant/30 object-cover flex-shrink-0 mt-0.5" data-alt="A clean pharmaceutical pack of Augmentin 625mg prescription tablets photographed against a neutral clinical backdrop. Soft diffused medical lighting casts light shadows, emphasizing sterile, rigorous prescription verification standards." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY0YMa5HdobOAdt6VezNclWRCzGFMDU6ZWPHhgKEO4Qc54mVMrPBg_wxr6j3TCGBVbO5pULUkwmClXCV26TzvChHG_-aX-j91FLUGkSMqj8CLCf0K7d9rJ73n155bpMvLad6eurxwmjmx-Af72Rw0B6RixCXF_ctcfFAKMzGRX_xYCJhHtwNxSadVsh4NytU5gR0zJmH_ppH4mcbOZH7gK7QIEd7aZYSPzMgZTUbzaiqdUWdX1CacViIqp_lmnyT31tx7L8VqlLw"/>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-1.5 flex-wrap">
+<p class="font-label-md text-label-md font-semibold text-on-surface truncate">Augmentin 625mg</p>
+<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-error/10 text-error border border-error/20">Kê đơn</span>
+</div>
+<span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-container text-on-surface-variant">Hộp × 1</span>
+<p class="text-[11px] font-label-sm text-error font-medium mt-0.5">Chờ dược sĩ xác nhận</p>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">185.000 ₫</span>
+</div>
+</div>
+<!-- Bảng tính tiền chi tiết -->
+<div class="pt-4 border-t border-outline-variant/20 space-y-2.5 font-body-sm text-body-sm">
+<div class="flex justify-between text-on-surface-variant">
+<span>Tạm tính</span>
+<span class="text-on-surface font-medium">555.500 ₫</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>Giảm giá sản phẩm</span>
+<span class="font-semibold">-52.000 ₫</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>Mã GIAM50K</span>
+<span class="font-semibold">-50.000 ₫</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Phí giao hàng</span>
+<span class="text-on-surface font-medium">25.000 ₫</span>
+</div>
+</div>
+<!-- Dòng Tổng thanh toán -->
+<div class="pt-4 mt-4 border-t border-outline-variant/20">
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Tổng thanh toán</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary">478.500 ₫</span>
+</div>
+<p class="text-right font-label-sm text-label-sm text-outline">Đã bao gồm thuế giá trị gia tăng</p>
+</div>
+<!-- Checkbox điều khoản -->
+<div class="mt-5">
+<label class="flex items-start gap-2.5 cursor-pointer select-none">
+<input checked="" class="rounded border-outline-variant/50 text-primary focus:ring-primary w-4 h-4 mt-0.5" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant">
+                Tôi đồng ý với <a class="text-primary hover:underline" href="#">điều khoản mua thuốc</a> và <a class="text-primary hover:underline" href="#">chính sách bảo mật</a> của MediVia
+              </span>
+</label>
+</div>
+<!-- CTA Đặt hàng -->
+<button class="w-full mt-5 bg-primary hover:bg-primary-dim text-on-primary font-bold py-3.5 px-4 rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2" type="button">
+<span class="font-label-md text-label-md tracking-wide">Đặt hàng</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<!-- 3 Cam kết an tâm dược phẩm -->
+<div class="mt-6 pt-5 border-t border-outline-variant/20 space-y-2.5">
+<div class="flex items-center gap-2.5 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span class="font-body-sm text-body-sm">Dược sĩ kiểm tra đơn trước khi giao</span>
+</div>
+<div class="flex items-center gap-2.5 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">shield</span>
+<span class="font-body-sm text-body-sm">Thuốc chính hãng, có hoá đơn</span>
+</div>
+<div class="flex items-center gap-2.5 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">published_with_changes</span>
+<span class="font-body-sm text-body-sm">Đổi trả trong 30 ngày</span>
+</div>
+</div>
+<!-- Bảo mật y tế -->
+<p class="mt-5 text-center font-label-sm text-label-sm text-outline leading-relaxed">
+            Thông tin sức khoẻ của bạn được mã hoá và chỉ dược sĩ phụ trách đơn được xem
+          </p>
+</div>
+</div>
+</div>
+</main>
+<!-- CHÂN TRANG ĐƠN GIẢN (Minimal Checkout Footer) -->
+<footer class="w-full border-t border-outline-variant/20 bg-surface-container-lowest py-6">
+<div class="max-w-[1280px] mx-auto px-6 text-center">
+<p class="font-label-sm text-label-sm text-outline">
+        MediVia · Giấy phép kinh doanh dược số 0106/HCM · Người chịu trách nhiệm chuyên môn: DS. Trần Thu Hà
+      </p>
+</div>
+</footer>
+</body></html>

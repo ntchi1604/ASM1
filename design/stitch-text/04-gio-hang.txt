@@ -1,0 +1,189 @@
+Giỏ hàng của bạn | MediVia Pharmacy
+support_agent
+Tư vấn dược sĩ miễn phí: 1800 6928 (7h00 - 22h00)
+schedule
+Hỗ trợ trực tuyến 24/7
+inventory_2
+Tra cứu đơn hàng
+storefront
+Hệ thống 1.247 nhà thuốc
+smartphone
+Tải ứng dụng
+add_circle
+MediVia
+Dược phẩm & AI Y tế
+search
+arrow_back_ios_new
+AI
+mic
+photo_camera
+location_on
+Giao đến:
+TP. Hồ Chí Minh
+account_circle
+Đăng nhập
+shopping_cart
+Giỏ hàng
+4
+Thực phẩm chức năng
+Dược mỹ phẩm
+Thuốc
+Chăm sóc cá nhân
+Thiết bị y tế
+Mẹ và bé
+Góc sức khoẻ
+batch_prediction
+Tra cứu tương tác AI
+Trang chủ
+/
+Giỏ hàng của bạn
+Giỏ hàng của bạn
+4 sản phẩm
+warning
+Phát hiện 2 vấn đề trong giỏ hàng của bạn
+Hệ thống dược lâm sàng MediVia khuyến cáo kiểm tra liều dùng trước khi đặt mua
+arrow_back_ios_new
+AI kiểm tra
+Nghiêm trọng
+Hapacol 650 sủi + Panadol Extra
+Cả hai đều chứa Paracetamol . Dùng đồng thời dễ vượt liều tối đa 4.000 mg mỗi ngày và gây độc cho gan.
+Bỏ 1 sản phẩm
+Chi tiết
+chevron_right
+Trung bình
+Vitamin C 1000mg + Aspirin 81mg
+Vitamin C liều cao có thể làm tăng nồng độ Aspirin trong máu. Nên uống cách nhau tối thiểu 2 giờ.
+Chi tiết
+chevron_right
+verified_user
+Kiểm tra dựa trên dữ liệu tương tác thuốc được MediVia đối chiếu. Vui lòng hỏi dược sĩ nếu bạn đang dùng thêm thuốc khác.
+8 cols of 12) -->
+Chọn tất cả (4)
+Đơn giá
+Số lượng
+Tạm tính
+Hapacol 650 viên sủi
+Hoạt chất: Paracetamol 650mg
+Hộp
+error
+Liên quan cảnh báo nghiêm trọng
+78.000 ₫
+104.000 ₫
+-25%
+remove
+2
+add
+156.000 ₫
+Còn 12 hộp tại 3 nhà thuốc
+delete
+Panadol Extra đỏ
+Hoạt chất: Paracetamol 500mg, Caffeine 65mg
+Vỉ
+error
+Liên quan cảnh báo nghiêm trọng
+11.500 ₫
+remove
+3
+add
+34.500 ₫
+Còn 24 vỉ gần bạn
+delete
+Vitamin C 1000mg viên sủi
+Công dụng: Bổ sung đề kháng
+Hộp
+96.000 ₫
+remove
+1
+add
+96.000 ₫
+Còn 8 hộp gần bạn
+delete
+Oresol Hydrite
+Công dụng: Bù nước điện giải vị cam
+Hộp
+42.000 ₫
+remove
+2
+add
+84.000 ₫
+Còn 19 hộp gần bạn
+delete
+arrow_back_ios_new
+AI gợi ý
+Đơn của bạn đang điều trị sốt. Nhiều người mua thêm:
+Xem phân tích dược lý
+Nhiệt kế điện tử Omron
+189.000 ₫ / Cái
+add
+Thêm
+Nước muối Natri Clorid 0,9%
+12.000 ₫ / Chai
+add
+Thêm
+Khẩu trang y tế 4 lớp
+35.000 ₫ / Hộp 50
+add
+Thêm
+4 cols of 12, sticky) -->
+confirmation_number
+Mã ưu đãi MediVia
+Áp dụng
+check
+GIAM50K
+Giảm 50.000 ₫ cho đơn từ 300.000 ₫
+Đã chọn
+local_shipping
+FREESHIP
+Miễn phí giao hàng toàn quốc
+Dùng mã
+Tóm tắt đơn hàng
+Tạm tính (4 sản phẩm):
+370.500 ₫
+Giảm giá sản phẩm:
+-52.000 ₫
+Mã GIAM50K:
+-50.000 ₫
+Phí giao hàng:
+25.000 ₫
+Tổng cộng:
+293.500 ₫
+Đã bao gồm thuế giá trị gia tăng (VAT)
+Tiến hành thanh toán
+arrow_forward
+Bạn sẽ được xác nhận đơn trước khi dược sĩ soạn hàng
+verified
+Dược sĩ kiểm tra đơn trước khi giao
+schedule
+Giao 2 giờ nội thành
+sync
+Đổi trả trong 30 ngày
+add
+MediVia
+Hệ sinh thái nhà thuốc số kết hợp trí tuệ nhân tạo đối soát tương tác dược lý, mang đến dịch vụ chuẩn xác và an tâm tuyệt đối cho sức khoẻ gia đình bạn.
+Tổng đài tư vấn: 1800 6928 (Miễn phí)
+Khiếu nại dịch vụ: 1800 6929
+Danh mục thuốc
+Thuốc kê đơn
+Thuốc không kê đơn
+Dược mỹ phẩm
+Thực phẩm chức năng
+Tra cứu tương tác AI
+Tư vấn dược sĩ 24/7
+Hỗ trợ khách hàng
+Về MediVia
+Chính sách thuốc kê đơn
+Quy chế tư vấn AI
+Chính sách đổi trả & bảo hành
+Hệ thống nhà thuốc gần bạn
+Liên hệ Dược sĩ trưởng
+Chứng nhận chất lượng
+Đạt chuẩn thực hành tốt quản lý nhà thuốc (GPP) do Sở Y tế TP.HCM chứng nhận và kiểm duyệt định kỳ.
+GPP Certified
+Bộ Y Tế
+Số đăng ký: 0102030405/SYT-TPHCM
+© 2025 MediVia Pharmacy Ltd. GPĐKKD số 0102030405 do Sở Y tế TP.HCM cấp. Mọi thông tin y tế chỉ mang tính tham khảo, không thay thế chẩn đoán chuyên môn.
+Giấy phép hoạt động dược
+•
+Chính sách bảo mật dữ liệu y tế
+•
+Điều khoản giao dịch

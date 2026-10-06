@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   MediVia — Design tokens
+   Nguồn sự thật duy nhất về màu, chữ, bo góc, khoảng cách.
+   KHÔNG viết mã hex trực tiếp trong component.
+   ============================================================ */
+@theme {
+  /* --- 4 màu mang nghĩa --- */
+  --color-trust: #0e9a8d; /* thương hiệu, hành động chính */
+  --color-promo: #ff6b4a; /* khuyến mãi, giảm giá */
+  --color-ai: #7c5cff; /* CHỈ dành cho nội dung do AI tạo */
+  --color-danger: #dc2626; /* cảnh báo, thuốc kê đơn */
+  --color-ink: #0f1d2e; /* chữ chính */
+
+  /* --- Biến thể cho chữ cỡ nhỏ (đủ tương phản trên nền sáng) --- */
+  --color-trust-text: #0b7a70;
+  --color-promo-text: #c2410c;
+  --color-ai-text: #5b3fd9;
+
+  /* --- Nền chữ phụ --- */
+  --color-ink-muted: #5b6b80;
+  --color-ink-subtle: #8a97a8;
+
+  /* --- Bề mặt --- */
+  --color-page: #f6f8fa;
+  --color-card: #ffffff;
+  --color-recessed: #eef2f6;
+  --color-hairline: #e3e9ef;
+  --color-divider: #edf1f5;
+
+  /* --- Nền nhạt của 4 màu (dùng cho chip, khối nhấn) --- */
+  --color-trust-wash: #e6f7f5;
+  --color-promo-wash: #fff1ec;
+  --color-ai-wash: #f4f0ff;
+  --color-danger-wash: #fdeceb;
+
+  /* --- Font --- */
+  --font-headline: var(--font-be-vietnam-pro), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* --- Bo góc: chỉ 12px cho card/button, 999px cho chip --- */
+  --radius-card: 12px;
+  --radius-chip: 999px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ============================================================
+   Thang chữ. Line-height tối thiểu 1.08 (display) / 1.2 (heading)
+   để dấu tiếng Việt xếp tầng không bị cắt.
+   ============================================================ */
+@theme {
+  --text-headline-xl: 2.25rem;
+  --text-headline-xl--line-height: 1.15;
+  --text-headline-xl--font-weight: 700;
+
+  --text-headline-lg: 1.75rem;
+  --text-headline-lg--line-height: 1.2;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-md: 1.25rem;
+  --text-headline-md--line-height: 1.25;
+  --text-headline-md--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.5;
+
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5;
+
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.4;
+
+  --text-label-md: 0.875rem;
+  --text-label-md--line-height: 1.25;
+  --text-label-md--font-weight: 500;
+
+  --text-label-sm: 0.75rem;
+  --text-label-sm--line-height: 1.2;
+  --text-label-sm--font-weight: 500;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background-color: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-md);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-headline);
+    text-wrap: balance;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================
+   Utilities dùng chung
+   ============================================================ */
+@utility container-medivia {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+
+  @variant md {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* Vệt sáng khi focus bằng bàn phím — bắt buộc cho mọi phần tử tương tác */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-trust);
+    outline-offset: 2px;
+  }
+}
+
+/* Giới hạn số dòng của tên thuốc trong thẻ sản phẩm */
+@utility line-clamp-2-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

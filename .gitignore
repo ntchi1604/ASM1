@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ket qua tam cua script kiem tra trong design/ (design/*.mjs tu ghi ra)
+# Console Windows la cp1252 nen script ghi file UTF-8 roi doc lai, thay vi in truc tiep.
+design/_*.txt
+
+# Du lieu quan tri nhap tu giao dien. La du lieu chay may, khong phai ma nguon:
+# commit no len thi nguoi clone ve se thay cac mon do nguoi khac them, va tep
+# delta chi co nghia voi dung cay ma nguon da sinh ra no.
+/.data/

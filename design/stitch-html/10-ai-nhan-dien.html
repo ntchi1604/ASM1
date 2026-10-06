@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MediVia - Nhận diện thuốc bằng ảnh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#0e9a8d',
+              600: '#0b7c71',
+              700: '#085c54',
+              900: '#134e48',
+            },
+            ai: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              600: '#9333ea',
+              700: '#7e22ce',
+              800: '#6b21a8',
+            },
+            navy: {
+              900: '#0f172a',
+              800: '#1e293b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .mobile-container {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100vh;
+      background: #f8fafc;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="text-slate-800">
+  <div class="mobile-container pb-10">
+
+    <!-- THANH TRÊN (HEADER) -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
+      <button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-700 transition" aria-label="Đóng">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+      <h1 class="text-[15px] font-semibold text-slate-900 tracking-tight">Nhận diện thuốc bằng ảnh</h1>
+      <button class="text-[13px] font-semibold text-brand-600 hover:text-brand-700 px-1 py-1 transition flex items-center gap-0.5">
+        <span class="material-symbols-outlined text-sm">photo_camera</span>
+        Chụp lại
+      </button>
+    </header>
+
+    <div class="px-3.5 pt-3.5 space-y-3.5">
+
+      <!-- KHỐI ẢNH ĐÃ CHỤP -->
+      <div class="relative w-full h-[180px] rounded-[12px] overflow-hidden shadow-sm bg-amber-950 border border-slate-200">
+        <!-- Nền mô phỏng ảnh chụp bàn gỗ và vỏ hộp thuốc -->
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-800 via-amber-900 to-stone-900 opacity-90"></div>
+        <div class="absolute inset-0 opacity-15" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 0, transparent 8px);"></div>
+        
+        <!-- Vỏ hộp thuốc mô phỏng bên trong ảnh chụp -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="relative w-56 h-28 bg-gradient-to-r from-red-600 via-red-500 to-white rounded-md shadow-lg p-2 flex flex-col justify-between transform -rotate-1 border border-white/20">
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-bold text-white uppercase tracking-wider">GSK</span>
+              <span class="text-[8px] font-semibold text-red-700 bg-white/90 px-1 rounded">OTC</span>
+            </div>
+            <div>
+              <div class="text-white font-extrabold text-sm tracking-tight drop-shadow-sm">Panadol Extra</div>
+              <div class="text-[8px] text-white/90 font-medium leading-tight">Paracetamol 500mg, Caffeine 65mg</div>
+            </div>
+            <div class="h-1.5 w-full bg-red-700 rounded-full"></div>
+          </div>
+        </div>
+
+        <!-- Khung nhận diện AI viền tím với 4 góc ngoặc -->
+        <div class="absolute inset-x-8 inset-y-5 border border-purple-400/80 bg-purple-500/10 rounded pointer-events-none">
+          <!-- Góc ngoặc trên-trái -->
+          <div class="absolute -top-1 -left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-purple-400"></div>
+          <!-- Góc ngoặc trên-phải -->
+          <div class="absolute -top-1 -right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-purple-400"></div>
+          <!-- Góc ngoặc dưới-trái -->
+          <div class="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-purple-400"></div>
+          <!-- Góc ngoặc dưới-phải -->
+          <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-purple-400"></div>
+
+          <!-- Tia scan quét qua nhẹ -->
+          <div class="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-purple-300 to-transparent shadow-[0_0_8px_#c084fc]"></div>
+        </div>
+
+        <!-- Chip góc dưới trái: Đã đọc được 14 dòng chữ -->
+        <div class="absolute bottom-2.5 left-2.5 bg-black/70 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10 shadow-xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Đã đọc được 14 dòng chữ
+        </div>
+
+        <!-- Icon phóng to nhẹ góc phải -->
+        <div class="absolute bottom-2.5 right-2.5 bg-black/50 text-white/80 p-1 rounded-md text-[10px]">
+          <span class="material-symbols-outlined text-sm">crop_free</span>
+        </div>
+      </div>
+
+      <!-- KHỐI KẾT QUẢ CHÍNH -->
+      <div class="bg-white rounded-[14px] border border-purple-200/90 shadow-sm overflow-hidden">
+        <!-- Đầu thẻ: nền gradient tím nhạt + hàng nhãn -->
+        <div class="bg-gradient-to-r from-purple-50 via-purple-50/70 to-white px-3.5 py-2.5 border-b border-purple-100 flex items-center justify-between">
+          <div class="flex items-center gap-1.5 text-ai-700">
+            <span class="material-symbols-outlined text-base fill-icon text-purple-600">auto_awesome</span>
+            <span class="text-[12px] font-semibold uppercase tracking-wider text-purple-700">AI nhận diện</span>
+          </div>
+          <span class="bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+            Khớp 92%
+          </span>
+        </div>
+
+        <!-- Thân thẻ sản phẩm -->
+        <div class="p-3.5 space-y-3">
+          <!-- Ảnh vuông nhỏ + Tên + Hoạt chất + NSX -->
+          <div class="flex gap-3">
+            <div class="w-20 h-20 flex-shrink-0 bg-slate-50 rounded-lg border border-slate-200 p-1 flex items-center justify-center relative overflow-hidden">
+              <!-- Thumbnail sản phẩm panadol đỏ -->
+              <div class="w-full h-full bg-gradient-to-br from-red-600 to-red-700 rounded flex flex-col items-center justify-center text-white shadow-xs p-1">
+                <span class="text-[8px] font-bold tracking-widest text-red-200">GSK</span>
+                <span class="text-[9px] font-black text-white text-center leading-tight">Panadol<br>Extra</span>
+                <span class="text-[6px] text-white/80 mt-0.5">500mg</span>
+              </div>
+              <span class="absolute top-1 right-1 bg-red-500 text-white text-[7px] font-bold px-1 rounded-xs">ĐỎ</span>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <h2 class="text-[14px] font-bold text-slate-900 leading-tight">
+                Panadol Extra viên nén bao phim đỏ
+              </h2>
+              <p class="text-[11.5px] text-slate-500 mt-1 leading-snug">
+                Paracetamol 500mg + Caffeine 65mg · Hộp 15 vỉ x 12 viên
+              </p>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                Nhà sản xuất: Sanofi Việt Nam
+              </p>
+            </div>
+          </div>
+
+          <!-- Hàng badges -->
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
+            <span class="text-[10.5px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+              Thuốc không kê đơn
+            </span>
+            <span class="text-[10.5px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-mono">
+              Số đăng ký VD-24761-16
+            </span>
+          </div>
+
+          <!-- Hàng Giá + Tình trạng kho -->
+          <div class="pt-1 border-t border-slate-100">
+            <div class="flex items-baseline gap-2">
+              <span class="text-[18px] font-bold text-brand-700 tracking-tight">45.000 ₫</span>
+              <span class="text-[12px] text-slate-500">/ Hộp</span>
+              <span class="text-[11px] text-slate-400 ml-auto font-medium">11.500 ₫ / Vỉ</span>
+            </div>
+            
+            <div class="flex items-center gap-1 text-[11.5px] font-medium text-brand-600 mt-1.5">
+              <span class="material-symbols-outlined text-[15px]">location_on</span>
+              <span>Còn 24 hộp tại 5 nhà thuốc gần bạn</span>
+            </div>
+          </div>
+
+          <!-- 2 Nút hành động: Thêm vào giỏ (2 phần) & Tim (1 phần) -->
+          <div class="flex gap-2 pt-1">
+            <button class="flex-[2] bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-[13.5px] py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 shadow-xs transition">
+              <span class="material-symbols-outlined text-lg">shopping_cart</span>
+              Thêm vào giỏ
+            </button>
+            <button class="flex-1 bg-white hover:bg-teal-50 border border-brand-500 active:bg-teal-100 text-brand-600 font-semibold text-[13.5px] py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 transition">
+              <span class="material-symbols-outlined text-lg">favorite</span>
+              Lưu
+            </button>
+          </div>
+
+          <!-- Chân thẻ: link tím nhỏ -->
+          <div class="pt-1 text-center">
+            <a href="#" class="text-[11.5px] font-medium text-purple-700 hover:text-purple-800 inline-flex items-center gap-1">
+              Xem thông tin gốc từ nhà sản xuất
+              <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHỐI AI TÓM TẮT -->
+      <div class="bg-white rounded-[14px] border border-purple-200/90 shadow-sm p-3.5 space-y-2.5">
+        <!-- Nhãn tiêu đề -->
+        <div class="flex items-center justify-between pb-1 border-b border-purple-50">
+          <div class="flex items-center gap-1.5 text-purple-700">
+            <span class="material-symbols-outlined text-base fill-icon">auto_awesome</span>
+            <span class="text-[12.5px] font-bold">AI tóm tắt</span>
+          </div>
+          <span class="text-[10px] text-purple-600 bg-purple-50 font-medium px-2 py-0.5 rounded-full border border-purple-100">Dược thư Quốc gia</span>
+        </div>
+
+        <!-- 3 dòng nội dung -->
+        <div class="space-y-2 text-[12px] leading-relaxed">
+          <div class="flex items-start gap-1.5">
+            <span class="text-navy-900 font-bold min-w-[70px]">Công dụng:</span>
+            <span class="text-slate-700">Giảm đau đầu, đau răng, đau bụng kinh và hạ sốt. Caffeine giúp tăng hiệu quả giảm đau.</span>
+          </div>
+          <div class="flex items-start gap-1.5">
+            <span class="text-navy-900 font-bold min-w-[70px]">Liều dùng:</span>
+            <span class="text-slate-700">Người lớn uống 1–2 viên mỗi 4–6 giờ. Không quá 8 viên trong 24 giờ.</span>
+          </div>
+          <div class="flex items-start gap-1.5">
+            <span class="text-navy-900 font-bold min-w-[70px]">Lưu ý:</span>
+            <span class="text-slate-700">Không dùng cùng thuốc khác có Paracetamol. Không uống rượu. Người bệnh gan cần hỏi dược sĩ.</span>
+          </div>
+        </div>
+
+        <!-- Chân khối: chú thích y tế -->
+        <p class="text-[10.5px] text-slate-400 pt-1 border-t border-slate-100 leading-snug">
+          AI tóm tắt từ tờ hướng dẫn sử dụng, không thay thế chỉ định của bác sĩ.
+        </p>
+      </div>
+
+      <!-- KHỐI KHẢ NĂNG KHÁC -->
+      <div class="bg-white rounded-[14px] border border-slate-200 shadow-sm p-3.5 space-y-2.5">
+        <div>
+          <h3 class="text-[13px] font-bold text-navy-900">Có thể là thuốc khác</h3>
+          <p class="text-[11px] text-slate-500">AI đưa ra 2 khả năng còn lại để bạn đối chiếu</p>
+        </div>
+
+        <div class="divide-y divide-slate-100">
+          <!-- Hàng 1: Panadol xanh 500mg -->
+          <div class="py-2.5 flex items-center gap-3">
+            <div class="w-12 h-12 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center p-1 flex-shrink-0">
+              <div class="w-full h-full bg-blue-600 rounded flex flex-col items-center justify-center text-white text-[7px] font-bold">
+                PANADOL
+                <span class="text-[6px] font-normal opacity-80">XANH</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-[12.5px] text-slate-900 truncate">Panadol xanh 500mg</div>
+              <div class="text-[11px] text-slate-500">Paracetamol 500mg</div>
+              <div class="text-[11.5px] font-semibold text-brand-600 mt-0.5">38.000 ₫ <span class="text-[10.5px] text-slate-400 font-normal">/ Hộp</span></div>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-md">
+                Khớp 61%
+              </span>
+            </div>
+          </div>
+
+          <!-- Hàng 2: Hapacol 500mg -->
+          <div class="pt-2.5 flex items-center gap-3">
+            <div class="w-12 h-12 bg-amber-50 border border-amber-100 rounded-lg flex items-center justify-center p-1 flex-shrink-0">
+              <div class="w-full h-full bg-amber-500 rounded flex flex-col items-center justify-center text-white text-[7px] font-bold">
+                HAPACOL
+                <span class="text-[6px] font-normal opacity-80">500</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-[12.5px] text-slate-900 truncate">Hapacol 500mg</div>
+              <div class="text-[11px] text-slate-500">Paracetamol 500mg</div>
+              <div class="text-[11.5px] font-semibold text-brand-600 mt-0.5">25.000 ₫ <span class="text-[10.5px] text-slate-400 font-normal">/ Hộp</span></div>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-md">
+                Khớp 43%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHỐI HÀNH ĐỘNG PHỤ -->
+      <div class="space-y-2">
+        <!-- Action 1: Kiểm tra tương tác thuốc -->
+        <a href="#" class="block bg-white rounded-xl border border-slate-200 p-3 hover:bg-slate-50 active:bg-slate-100 transition shadow-xs">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-teal-700 flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">shield</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[12.5px] font-bold text-slate-900 leading-snug">Kiểm tra tương tác với thuốc đang dùng</div>
+              <div class="text-[11px] text-slate-500 leading-snug">Xem thuốc này có xung đột với đơn của bạn</div>
+            </div>
+            <span class="material-symbols-outlined text-slate-400 text-lg flex-shrink-0">chevron_right</span>
+          </div>
+        </a>
+
+        <!-- Action 2: Hỏi dược sĩ AI về thuốc này -->
+        <a href="#" class="block bg-white rounded-xl border border-purple-200 p-3 hover:bg-purple-50/50 active:bg-purple-100/50 transition shadow-xs">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">forum</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[12.5px] font-bold text-slate-900 leading-snug">Hỏi dược sĩ AI về thuốc này</div>
+              <div class="text-[11px] text-slate-500 leading-snug">Cách dùng, tác dụng phụ, lưu ý</div>
+            </div>
+            <span class="material-symbols-outlined text-purple-400 text-lg flex-shrink-0">chevron_right</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- DÒNG CUỐI: Cảnh báo kết quả y tế -->
+      <div class="pt-2 pb-4 px-2 text-center">
+        <p class="text-[10px] text-slate-400 leading-relaxed max-w-[340px] mx-auto">
+          Kết quả nhận diện dựa trên hình ảnh và có thể sai. Hãy đối chiếu với vỏ hộp thật trước khi dùng.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

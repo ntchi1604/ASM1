@@ -1,0 +1,127 @@
+Thanh toán - MediVia
+local_pharmacy
+MediVia
+Thanh toán
+support_agent
+Cần hỗ trợ?
+1800 6928
+(Miễn phí)
+check
+1 Giỏ hàng
+2
+2 Thanh toán
+3
+3 Hoàn tất
+1
+Thông tin người nhận
+Họ và tên
+Số điện thoại
+Email nhận hoá đơn
+Tỉnh / Thành phố
+TP. Hồ Chí Minh
+Hà Nội
+Đà Nẵng
+Quận / Huyện
+Quận 3
+Quận 1
+Quận 10
+Phường / Xã
+Phường Võ Thị Sáu
+Phường Đa Kao
+Phường 5
+Địa chỉ cụ thể
+Loại địa chỉ:
+home
+Nhà riêng
+apartment
+Cơ quan
+Lưu làm địa chỉ mặc định
+2
+Hình thức nhận hàng
+bolt
+Giao nhanh 2 giờ
+Dự kiến nhận trước 16:30 hôm nay, 16/09/2026
+25.000 ₫
+local_shipping
+Giao tiêu chuẩn
+Dự kiến 17/09 – 18/09/2026
+Miễn phí
+storefront
+Nhận tại nhà thuốc
+MediVia Quận 3 — 89 Cao Thắng, cách bạn 1,2 km. Sẵn hàng sau 30 phút
+Miễn phí
+Đổi nhà thuốc
+Ghi chú cho dược sĩ
+edit_note
+3
+Phương thức thanh toán
+payments
+Thanh toán khi nhận hàng (COD)
+Kiểm tra thuốc và hoá đơn trước khi trả tiền
+M
+Ví MoMo
+Z
+ZaloPay
+V
+VNPay — quét mã QR
+credit_card
+Thẻ ATM / Visa / Mastercard
+Tôi cần hoá đơn điện tử cho công ty
+Tên công ty
+Mã số thuế
+4
+Đơn thuốc kê đơn
+info
+Đơn của bạn có 1 thuốc kê đơn cần dược sĩ xác nhận: Augmentin 625mg
+upload_file
+Tải ảnh đơn thuốc từ bác sĩ
+Chấp nhận JPG, PNG, PDF dưới 10 MB
+description
+don-thuoc-bs-hoang.jpg
+1.8 MB · Đã tải lên
+delete
+verified_user
+Dược sĩ sẽ gọi xác nhận trong 15 phút trước khi soạn thuốc kê đơn
+Đơn hàng của bạn
+5 sản phẩm
+Hapacol 650 viên sủi
+Hộp × 2
+156.000 ₫
+Panadol Extra đỏ
+Vỉ × 3
+34.500 ₫
+Vitamin C 1000mg
+Hộp × 1
+96.000 ₫
+Oresol Hydrite
+Hộp × 2
+84.000 ₫
+Augmentin 625mg
+Kê đơn
+Hộp × 1
+Chờ dược sĩ xác nhận
+185.000 ₫
+Tạm tính
+555.500 ₫
+Giảm giá sản phẩm
+-52.000 ₫
+Mã GIAM50K
+-50.000 ₫
+Phí giao hàng
+25.000 ₫
+Tổng thanh toán
+478.500 ₫
+Đã bao gồm thuế giá trị gia tăng
+Tôi đồng ý với
+điều khoản mua thuốc và
+chính sách bảo mật của MediVia
+Đặt hàng
+arrow_forward
+verified
+Dược sĩ kiểm tra đơn trước khi giao
+shield
+Thuốc chính hãng, có hoá đơn
+published_with_changes
+Đổi trả trong 30 ngày
+Thông tin sức khoẻ của bạn được mã hoá và chỉ dược sĩ phụ trách đơn được xem
+MediVia · Giấy phép kinh doanh dược số 0106/HCM · Người chịu trách nhiệm chuyên môn: DS. Trần Thu Hà

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediVia - Tìm thuốc bằng giọng nói</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              teal: '#0e9a8d',
+              'teal-dark': '#0a756b',
+              'teal-light': '#e6f6f4',
+              navy: '#0f172a',
+              purple: '#7c3aed',
+              'purple-light': '#f3e8ff',
+              'purple-subtle': '#faf5ff',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .material-symbols-filled {
+      font-family: 'Material Symbols Outlined';
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Pulse rings */
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-ring-1 {
+      animation: pulseRing 2.4s ease-in-out infinite;
+    }
+    .pulse-ring-2 {
+      animation: pulseRing 2.4s ease-in-out infinite 0.6s;
+    }
+  </style>
+</head>
+<body class="bg-[#f0f4f8] font-sans antialiased text-[#1e293b] flex justify-center min-h-screen py-6 sm:py-10">
+
+  <!-- Mobile Container 390px -->
+  <div class="w-[390px] bg-white shadow-2xl rounded-[32px] overflow-hidden border border-slate-200/80 flex flex-col relative">
+
+    <!-- Status Bar (iOS style mockup) -->
+    <div class="px-7 pt-3 pb-1 flex justify-between items-center text-xs font-semibold text-slate-800 tracking-tight select-none">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[14px]">signal_cellular_4_bar</span>
+        <span class="material-symbols-outlined text-[14px]">wifi</span>
+        <span class="material-symbols-outlined text-[16px]">battery_full</span>
+      </div>
+    </div>
+
+    <!-- THANH TRÊN -->
+    <header class="px-4 py-3 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-30">
+      <button class="w-9 h-9 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Đóng">
+        <span class="material-symbols-outlined text-[22px]">close</span>
+      </button>
+      <h1 class="text-[16px] font-bold text-slate-900 tracking-tight">Tìm bằng giọng nói</h1>
+      <button class="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors" aria-label="Trợ giúp">
+        <span class="material-symbols-outlined text-[20px]">help</span>
+      </button>
+    </header>
+
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <main class="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-8">
+
+      <!-- KHỐI ĐANG NGHE -->
+      <section class="bg-gradient-to-b from-[#f8f5ff] via-[#faf8ff] to-white border border-[#e9d5ff] rounded-[16px] p-4 text-center relative overflow-hidden shadow-sm">
+        
+        <!-- Nhãn AI đang nghe -->
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 border border-purple-200/80 rounded-full mb-3">
+          <span class="material-symbols-outlined text-[#7c3aed] text-[16px]">auto_awesome</span>
+          <span class="text-[12px] font-bold text-[#7c3aed] uppercase tracking-wider">AI đang nghe</span>
+          <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse ml-0.5"></span>
+        </div>
+
+        <!-- Micro Tròn Lớn với Sóng Tím mờ -->
+        <div class="relative w-[130px] h-[130px] mx-auto flex items-center justify-center my-1">
+          <!-- Outer Wave 2 -->
+          <div class="absolute inset-0 rounded-full bg-purple-400/20 pulse-ring-2"></div>
+          <!-- Outer Wave 1 -->
+          <div class="absolute inset-2.5 rounded-full bg-purple-500/25 pulse-ring-1"></div>
+          
+          <!-- Micro Button 96px -->
+          <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#0e9a8d] to-[#0a756b] shadow-lg shadow-[#0e9a8d]/30 flex items-center justify-center cursor-pointer transform active:scale-95 transition-transform">
+            <span class="material-symbols-filled text-white text-[42px]">mic</span>
+          </div>
+        </div>
+
+        <!-- Waveform 40 vạch dọc màu tím -->
+        <div class="flex items-center justify-center gap-[2.5px] h-10 my-3 px-2">
+          <!-- 40 bars with varying heights, symmetric high in middle -->
+          <div class="w-[2.5px] bg-[#c084fc] rounded-full h-2"></div>
+          <div class="w-[2.5px] bg-[#c084fc] rounded-full h-3"></div>
+          <div class="w-[2.5px] bg-[#c084fc] rounded-full h-2"></div>
+          <div class="w-[2.5px] bg-[#a855f7] rounded-full h-4"></div>
+          <div class="w-[2.5px] bg-[#a855f7] rounded-full h-6"></div>
+          <div class="w-[2.5px] bg-[#a855f7] rounded-full h-5"></div>
+          <div class="w-[2.5px] bg-[#9333ea] rounded-full h-8"></div>
+          <div class="w-[2.5px] bg-[#9333ea] rounded-full h-10"></div>
+          <div class="w-[2.5px] bg-[#9333ea] rounded-full h-7"></div>
+          <div class="w-[2.5px] bg-[#7c3aed] rounded-full h-12"></div>
+          <div class="w-[2.5px] bg-[#7c3aed] rounded-full h-16"></div>
+          <div class="w-[2.5px] bg-[#7c3aed] rounded-full h-11"></div>
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-18"></div>
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-22"></div>
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-15"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-26"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-32"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-28"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-36"></div>
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-38"></div>
+          <!-- Peak center -->
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-38"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-34"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-30"></div>
+          <div class="w-[2.5px] bg-[#581c87] rounded-full h-24"></div>
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-20"></div>
+          <div class="w-[2.5px] bg-[#6d28d9] rounded-full h-16"></div>
+          <div class="w-[2.5px] bg-[#7c3aed] rounded-full h-22"></div>
+          <div class="w-[2.5px] bg-[#7c3aed] rounded-full h-15"></div>
+          <div class="w-[2.5px] bg-[#7c3aed] rounded-full h-12"></div>
+          <div class="w-[2.5px] bg-[#9333ea] rounded-full h-14"></div>
+          <div class="w-[2.5px] bg-[#9333ea] rounded-full h-9"></div>
+          <div class="w-[2.5px] bg-[#9333ea] rounded-full h-6"></div>
+          <div class="w-[2.5px] bg-[#a855f7] rounded-full h-8"></div>
+          <div class="w-[2.5px] bg-[#a855f7] rounded-full h-5"></div>
+          <div class="w-[2.5px] bg-[#a855f7] rounded-full h-4"></div>
+          <div class="w-[2.5px] bg-[#c084fc] rounded-full h-6"></div>
+          <div class="w-[2.5px] bg-[#c084fc] rounded-full h-3"></div>
+          <div class="w-[2.5px] bg-[#c084fc] rounded-full h-4"></div>
+          <div class="w-[2.5px] bg-[#d8b4fe] rounded-full h-2"></div>
+          <div class="w-[2.5px] bg-[#d8b4fe] rounded-full h-2"></div>
+        </div>
+
+        <!-- Chữ nhận ra: "Tôi cần thuốc ho cho bé 4 tuổi" với highlight AI -->
+        <div class="text-[17px] font-bold text-slate-900 leading-snug px-2">
+          &ldquo;Tôi cần 
+          <span class="inline-block bg-[#f3e8ff] text-[#6d28d9] px-2 py-0.5 rounded-md border border-[#d8b4fe]/60 font-extrabold mx-0.5">thuốc ho</span>
+          cho 
+          <span class="inline-block bg-[#f3e8ff] text-[#6d28d9] px-2 py-0.5 rounded-md border border-[#d8b4fe]/60 font-extrabold mx-0.5">bé 4 tuổi</span>&rdquo;
+        </div>
+
+        <!-- Dòng trạng thái xám -->
+        <p class="text-[12px] text-slate-500 mt-2 mb-3.5 flex items-center justify-center gap-1.5 font-medium">
+          <span>Đã nghe 3 giây</span>
+          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+          <span>Nhận dạng tiếng Việt</span>
+        </p>
+
+        <!-- Hai chip: Nói lại & Tìm ngay -->
+        <div class="flex items-center justify-center gap-2.5">
+          <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#0e9a8d] text-[#0e9a8d] font-semibold text-[13px] hover:bg-[#e6f6f4] transition-colors active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">replay</span>
+            <span>Nói lại</span>
+          </button>
+          <button class="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-[#0e9a8d] text-white font-semibold text-[13px] shadow-sm shadow-[#0e9a8d]/30 hover:bg-[#0a756b] transition-colors active:scale-95">
+            <span>Tìm ngay</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- KHỐI AI HIỂU CÂU NÓI -->
+      <section class="bg-white border border-[#e9d5ff] rounded-[16px] p-3.5 shadow-sm">
+        <div class="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-purple-100">
+          <span class="material-symbols-outlined text-[#7c3aed] text-[18px]">psychology</span>
+          <span class="text-[13px] font-bold text-[#6d28d9]">AI hiểu yêu cầu của bạn</span>
+        </div>
+
+        <div class="space-y-2 text-[13px]">
+          <!-- Hàng 1 -->
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium text-[12px]">Triệu chứng</span>
+            <span class="inline-flex items-center gap-1 bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe] px-2.5 py-0.5 rounded-full font-semibold text-[12px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+              Ho
+            </span>
+          </div>
+          <!-- Hàng 2 -->
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium text-[12px]">Đối tượng</span>
+            <span class="inline-flex items-center gap-1 bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe] px-2.5 py-0.5 rounded-full font-semibold text-[12px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+              Trẻ em 4 tuổi
+            </span>
+          </div>
+          <!-- Hàng 3 -->
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium text-[12px]">Dạng bào chế</span>
+            <span class="inline-flex items-center gap-1 bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe] px-2.5 py-0.5 rounded-full font-semibold text-[12px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+              Siro · Ưu tiên vị ngọt
+            </span>
+          </div>
+        </div>
+
+        <p class="text-[10.5px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 italic text-center">
+          AI chỉ gợi ý nhóm sản phẩm, không chẩn đoán bệnh.
+        </p>
+      </section>
+
+      <!-- KHỐI CẢNH BÁO NHẸ -->
+      <div class="bg-red-50 border border-red-200/80 rounded-[12px] p-3 flex items-start gap-2.5">
+        <span class="material-symbols-filled text-red-600 text-[18px] shrink-0 mt-0.5">warning</span>
+        <p class="text-[12px] text-red-700 leading-snug font-medium">
+          Nếu bé sốt trên 39°C, ho kèm khó thở hoặc ho quá 5 ngày, hãy đưa bé đến cơ sở y tế thay vì tự mua thuốc.
+        </p>
+      </div>
+
+      <!-- KHỐI KẾT QUẢ -->
+      <section class="space-y-3 pt-1">
+        <div class="flex items-center justify-between">
+          <h2 class="text-[15px] font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+            <span>3 sản phẩm phù hợp với bé 4 tuổi</span>
+          </h2>
+          <a href="#" class="text-[12px] font-semibold text-[#0e9a8d] hover:underline flex items-center">
+            Xem tất cả
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          </a>
+        </div>
+
+        <!-- Product Cards (Vertical list with horizontal layout) -->
+        <div class="space-y-3">
+
+          <!-- Product 1: Prospan -->
+          <div class="bg-white border border-slate-200/90 rounded-[12px] p-3 shadow-xs hover:border-[#0e9a8d]/50 transition-all flex flex-col gap-2.5">
+            <div class="flex gap-3">
+              <!-- Ảnh vuông bên trái -->
+              <div class="w-[84px] h-[84px] bg-gradient-to-br from-emerald-50 to-teal-50 rounded-[10px] border border-emerald-100 flex items-center justify-center shrink-0 relative overflow-hidden">
+                <!-- Mockup Siro Prospan Lá Thường Xuân -->
+                <div class="flex flex-col items-center justify-center text-center p-1">
+                  <div class="w-7 h-10 bg-emerald-600 rounded-t-sm rounded-b-md shadow-xs flex items-center justify-center relative border border-emerald-700">
+                    <div class="w-4 h-5 bg-white rounded-[2px] flex flex-col items-center justify-center">
+                      <span class="material-symbols-outlined text-emerald-600 text-[10px]">eco</span>
+                    </div>
+                  </div>
+                  <span class="text-[8px] font-bold text-emerald-800 mt-1 uppercase leading-tight">Prospan</span>
+                </div>
+                <!-- Badge AI gợi ý -->
+                <div class="absolute top-1 left-1 bg-[#7c3aed] text-white text-[9px] font-bold px-1.5 py-0.2 rounded flex items-center gap-0.5 shadow-xs">
+                  <span class="material-symbols-outlined text-[9px]">auto_awesome</span>
+                  AI gợi ý
+                </div>
+              </div>
+
+              <!-- Thông tin bên phải -->
+              <div class="flex-1 min-w-0">
+                <h3 class="text-[14px] font-bold text-slate-900 leading-tight line-clamp-1">Siro ho Prospan 100ml</h3>
+                <p class="text-[11.5px] text-slate-500 mt-0.5 leading-snug line-clamp-1">Cao lá thường xuân · Dùng được cho trẻ từ 1 tuổi</p>
+                
+                <div class="mt-1 flex items-baseline gap-1">
+                  <span class="text-[15px] font-extrabold text-[#0e9a8d]">92.000 ₫</span>
+                  <span class="text-[11.5px] text-slate-400 font-normal">/ Chai</span>
+                </div>
+                
+                <p class="text-[11px] text-[#0e9a8d] font-medium flex items-center gap-1 mt-0.5">
+                  <span class="material-symbols-outlined text-[12px]">store</span>
+                  Còn 18 chai tại 4 nhà thuốc gần bạn
+                </p>
+              </div>
+            </div>
+
+            <!-- Nút Thêm vào giỏ full width -->
+            <button class="w-full py-2 bg-[#0e9a8d] hover:bg-[#0a756b] active:scale-[0.99] text-white font-bold text-[13px] rounded-[8px] transition-all flex items-center justify-center gap-1.5 shadow-xs shadow-[#0e9a8d]/20">
+              <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+              Thêm vào giỏ
+            </button>
+          </div>
+
+          <!-- Product 2: Bảo Thanh -->
+          <div class="bg-white border border-slate-200/90 rounded-[12px] p-3 shadow-xs hover:border-[#0e9a8d]/50 transition-all flex flex-col gap-2.5">
+            <div class="flex gap-3">
+              <!-- Ảnh vuông bên trái -->
+              <div class="w-[84px] h-[84px] bg-gradient-to-br from-amber-50 to-orange-50 rounded-[10px] border border-amber-100 flex items-center justify-center shrink-0 relative overflow-hidden">
+                <!-- Mockup Siro Bảo Thanh nâu đỏ -->
+                <div class="flex flex-col items-center justify-center text-center p-1">
+                  <div class="w-7 h-10 bg-[#854d0e] rounded-t-sm rounded-b-md shadow-xs flex items-center justify-center relative border border-amber-900">
+                    <div class="w-4 h-5 bg-amber-100 rounded-[2px] flex flex-col items-center justify-center">
+                      <span class="material-symbols-outlined text-amber-800 text-[10px]">spa</span>
+                    </div>
+                  </div>
+                  <span class="text-[8px] font-bold text-amber-900 mt-1 uppercase leading-tight">Bảo Thanh</span>
+                </div>
+              </div>
+
+              <!-- Thông tin bên phải -->
+              <div class="flex-1 min-w-0">
+                <h3 class="text-[14px] font-bold text-slate-900 leading-tight line-clamp-1">Siro ho Bảo Thanh 90ml</h3>
+                <p class="text-[11.5px] text-slate-500 mt-0.5 leading-snug line-clamp-1">Thảo dược · Mật ong, ô mai vị ngọt dịu</p>
+                
+                <div class="mt-1 flex items-baseline gap-1">
+                  <span class="text-[15px] font-extrabold text-[#0e9a8d]">65.000 ₫</span>
+                  <span class="text-[11.5px] text-slate-400 font-normal">/ Chai</span>
+                </div>
+                
+                <p class="text-[11px] text-[#0e9a8d] font-medium flex items-center gap-1 mt-0.5">
+                  <span class="material-symbols-outlined text-[12px]">check_circle</span>
+                  Còn 32 chai
+                </p>
+              </div>
+            </div>
+
+            <!-- Nút Thêm vào giỏ full width -->
+            <button class="w-full py-2 bg-[#0e9a8d] hover:bg-[#0a756b] active:scale-[0.99] text-white font-bold text-[13px] rounded-[8px] transition-all flex items-center justify-center gap-1.5 shadow-xs shadow-[#0e9a8d]/20">
+              <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+              Thêm vào giỏ
+            </button>
+          </div>
+
+          <!-- Product 3: Hapacol 150 -->
+          <div class="bg-white border border-slate-200/90 rounded-[12px] p-3 shadow-xs hover:border-[#0e9a8d]/50 transition-all flex flex-col gap-2.5">
+            <div class="flex gap-3">
+              <!-- Ảnh vuông bên trái -->
+              <div class="w-[84px] h-[84px] bg-gradient-to-br from-yellow-50 to-amber-50 rounded-[10px] border border-yellow-200 flex items-center justify-center shrink-0 relative overflow-hidden">
+                <!-- Mockup Hapacol 150 gói bột vàng -->
+                <div class="flex flex-col items-center justify-center text-center p-1">
+                  <div class="w-9 h-7 bg-amber-400 rounded-[3px] shadow-xs flex items-center justify-center relative border border-amber-500">
+                    <span class="text-[7px] font-black text-amber-950">150mg</span>
+                  </div>
+                  <span class="text-[8px] font-bold text-amber-800 mt-1 uppercase leading-tight">Hapacol</span>
+                </div>
+                <!-- Badge -20% -->
+                <div class="absolute top-1 left-1 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-xs">
+                  -20%
+                </div>
+              </div>
+
+              <!-- Thông tin bên phải -->
+              <div class="flex-1 min-w-0">
+                <h3 class="text-[14px] font-bold text-slate-900 leading-tight line-clamp-1">Hapacol 150 gói bột hạ sốt</h3>
+                <p class="text-[11.5px] text-slate-500 mt-0.5 leading-snug line-clamp-1">Paracetamol 150mg · Vị cam, cho trẻ 4–6 tuổi</p>
+                
+                <div class="mt-1 flex items-baseline gap-1.5">
+                  <span class="text-[15px] font-extrabold text-[#0e9a8d]">48.000 ₫</span>
+                  <span class="text-[11px] text-slate-400 line-through">60.000 ₫</span>
+                  <span class="text-[11.5px] text-slate-400 font-normal">/ Hộp</span>
+                </div>
+                
+                <p class="text-[11px] text-[#0e9a8d] font-medium flex items-center gap-1 mt-0.5">
+                  <span class="material-symbols-outlined text-[12px]">check_circle</span>
+                  Còn 25 hộp
+                </p>
+              </div>
+            </div>
+
+            <!-- Nút Thêm vào giỏ full width -->
+            <button class="w-full py-2 bg-[#0e9a8d] hover:bg-[#0a756b] active:scale-[0.99] text-white font-bold text-[13px] rounded-[8px] transition-all flex items-center justify-center gap-1.5 shadow-xs shadow-[#0e9a8d]/20">
+              <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+              Thêm vào giỏ
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- KHỐI GỢI Ý CÂU NÓI Ở CUỐI -->
+      <section class="pt-2 pb-2">
+        <div class="text-[13px] font-bold text-[#0f172a] mb-2.5 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px] text-slate-500">lightbulb</span>
+          Bạn có thể nói
+        </div>
+        
+        <div class="space-y-2">
+          <!-- Chip 1 -->
+          <button class="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 active:bg-purple-50 border border-slate-200/70 rounded-[10px] flex items-center gap-2.5 transition-colors group">
+            <span class="material-symbols-outlined text-slate-400 group-hover:text-[#7c3aed] text-[18px]">mic</span>
+            <span class="text-[12.5px] text-slate-700 group-hover:text-slate-900 font-medium">Thuốc đau đầu dưới 100 nghìn</span>
+          </button>
+
+          <!-- Chip 2 -->
+          <button class="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 active:bg-purple-50 border border-slate-200/70 rounded-[10px] flex items-center gap-2.5 transition-colors group">
+            <span class="material-symbols-outlined text-slate-400 group-hover:text-[#7c3aed] text-[18px]">mic</span>
+            <span class="text-[12.5px] text-slate-700 group-hover:text-slate-900 font-medium">Vitamin C cho người lớn</span>
+          </button>
+
+          <!-- Chip 3 -->
+          <button class="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 active:bg-purple-50 border border-slate-200/70 rounded-[10px] flex items-center gap-2.5 transition-colors group">
+            <span class="material-symbols-outlined text-slate-400 group-hover:text-[#7c3aed] text-[18px]">mic</span>
+            <span class="text-[12.5px] text-slate-700 group-hover:text-slate-900 font-medium">Thuốc nhỏ mắt cho người dùng máy tính nhiều</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Home Indicator (iOS Bar) -->
+    <div class="w-full py-2 bg-white flex justify-center items-center border-t border-slate-50">
+      <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+    </div>
+
+  </div>
+
+</body>
+</html>

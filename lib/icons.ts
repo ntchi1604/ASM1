@@ -1,0 +1,109 @@
+/**
+ * Sổ đăng ký icon. Mỗi khái niệm chỉ có ĐÚNG MỘT icon trên toàn site.
+ *
+ * Lý do tồn tại file này: bản thiết kế Stitch dùng icon khác nhau cho cùng
+ * một khái niệm ở các trang khác nhau. Trang nào cũng import từ đây thì
+ * "dược sĩ" ở trang chủ, trang danh mục và trang chi tiết luôn cùng một hình.
+ *
+ * Quy tắc: component KHÔNG import trực tiếp từ "lucide-react".
+ */
+export {
+  // Điều hướng & khung
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Menu,
+  X,
+  // Thương mại
+  ShoppingCart,
+  Minus,
+  Plus,
+  Trash as Delete,
+  Percent,
+  Store,
+  Package,
+  Truck,
+  CreditCard,
+  Banknote,
+  Wallet,
+  MapPin,
+  User,
+  Timer,
+  Zap,
+  Gift,
+  // Chuyên môn dược
+  Cross,
+  Stethoscope,
+  Pill,
+  ClipboardList,
+  FileText,
+  Upload,
+  FileCheck,
+  ShieldCheck,
+  BadgeCheck,
+  QrCode,
+  Star,
+  Clock,
+  RotateCcw,
+  Phone,
+  MessageCircle,
+  Send,
+  Mail,
+  Headset,
+  BookOpen,
+  // Trạng thái & cảnh báo
+  TriangleAlert as AlertTriangle,
+  ShieldAlert,
+  Info,
+  Check,
+  CircleCheck,
+  Ban,
+  // Tìm kiếm & lọc
+  Search,
+  ListFilter,
+  SlidersHorizontal,
+  ArrowUpDown,
+  LayoutGrid,
+  List as ListView,
+  BellRing,
+  // AI (chỉ dùng trong khối AI, kèm màu tím)
+  Sparkles,
+  Bot,
+  Mic,
+  Camera,
+  ScanSearch,
+  GitCompareArrows,
+  Brain,
+  Volume2,
+  Lightbulb,
+  Loader,
+  // Quản trị
+  LayoutDashboard,
+  LogOut,
+  ChartColumn,
+  ChartLine,
+  ChartPie,
+  TrendingUp,
+  TrendingDown,
+  Boxes,
+  CalendarDays,
+  Bell,
+  Eye as EyeView,
+  // Nhóm bệnh / danh mục
+  Thermometer,
+  Droplets,
+  Wind,
+  Baby,
+  HeartPulse,
+  Bone,
+  Activity,
+  Hand,
+  SprayCan,
+  Eye,
+  Layers,
+} from "lucide-react";
+
+export type { LucideIcon } from "lucide-react";
