@@ -1,46 +1,14 @@
-import type { Product, ProductDetail } from "@/lib/types";
-import { dosageFormLabel } from "@/lib/filters";
-import { getDefaultUnit } from "@/lib/data/products";
+import type { Product } from "@/lib/types";
+import { infoRows } from "@/lib/product-compare";
 
 /**
  * Bảng thông tin dược. Đây là phần "sự thật đã kiểm duyệt", đối lập với khối
  * tóm tắt AI ở trên — nên nền trắng, không màu tím, không khuyến cáo AI.
  *
- * Dòng nào chưa có dữ liệu thì ghi "Đang cập nhật" thay vì bỏ hàng đi. Bảng
- * thiếu hàng làm người đọc tưởng thuốc không có số đăng ký.
+ * Dòng đọc từ `infoRows` để bảng so sánh dùng đúng cùng bộ nhãn.
  */
-export function ProductInfoTable({
-  product,
-  detail,
-}: {
-  product: Product;
-  detail?: ProductDetail;
-}) {
-  const packaging = getDefaultUnit(product).packaging;
-
-  const rows: { label: string; value: string }[] = [
-    { label: "Danh mục", value: detail?.therapeuticGroup ?? "Đang cập nhật" },
-    { label: "Dạng bào chế", value: dosageFormLabel(product.dosageForm) },
-    {
-      label: "Quy cách",
-      value: packaging
-        ? `${getDefaultUnit(product).label} ${packaging}`
-        : getDefaultUnit(product).label,
-    },
-    {
-      label: "Hoạt chất chính",
-      value: `${product.activeIngredient} ${product.strength}`.trim(),
-    },
-    { label: "Nhà sản xuất", value: detail?.manufacturer ?? product.brand },
-    { label: "Nước sản xuất", value: product.origin },
-    { label: "Số đăng ký lưu hành", value: detail?.registrationNumber ?? "Đang cập nhật" },
-    { label: "Hạn dùng", value: detail?.shelfLife ?? "Đang cập nhật" },
-    { label: "Bảo quản", value: detail?.storage ?? "Đang cập nhật" },
-  ];
-
-  if (detail?.sideEffects) {
-    rows.push({ label: "Tác dụng không mong muốn", value: detail.sideEffects });
-  }
+export function ProductInfoTable({ product }: { product: Product }) {
+  const rows = infoRows(product);
 
   return (
     <section id="thong-tin-chi-tiet" className="scroll-mt-24">

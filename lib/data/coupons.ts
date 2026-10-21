@@ -12,10 +12,37 @@ export type Coupon = {
   description: string;
   /** Giá trị đơn tối thiểu để dùng mã. */
   minSubtotal: number;
+  /**
+   * Ngày bắt đầu / kết thúc, dạng `YYYY-MM-DD` giờ địa phương. Bỏ trống = không
+   * giới hạn. So sánh bằng CHUỖI chứ không dựng `Date`: `"2026-10-01"` đem qua
+   * `new Date()` là nửa đêm UTC, và mã sẽ mở sớm hơn 7 tiếng ở Việt Nam.
+   */
+  startAt?: string;
+  endAt?: string;
 } & (
   | { kind: "amount"; amount: number }
   | { kind: "freeship" }
 );
+
+export type CouponState = "dang-chay" | "chua-bat-dau" | "het-han";
+
+/** Hôm nay theo giờ máy chủ, cùng định dạng với `startAt`/`endAt`. */
+function todayStamp(now = new Date()): string {
+  const part = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${part(now.getMonth() + 1)}-${part(now.getDate())}`;
+}
+
+/** Ngày kết thúc tính CẢ ngày đó — hết hạn từ hôm sau. */
+export function couponState(coupon: Coupon, today = todayStamp()): CouponState {
+  if (coupon.startAt && today < coupon.startAt) return "chua-bat-dau";
+  if (coupon.endAt && today > coupon.endAt) return "het-han";
+  return "dang-chay";
+}
+
+/** Mã đang chạy — thứ được quảng cáo cho khách. Mã hết hạn vẫn nằm trong kho. */
+export function getActiveCoupons(): Coupon[] {
+  return coupons.filter((coupon) => couponState(coupon) === "dang-chay");
+}
 
 export const coupons: Coupon[] = [
   {
@@ -55,6 +82,8 @@ export type OrderSummary = {
   shipping: number;
   /** true khi mã được chọn nhưng đơn chưa đủ điều kiện. */
   couponRejected: boolean;
+  /** Trạng thái thời gian của mã đã nhập — trang nói rõ vì sao mã bị từ chối. */
+  couponState?: CouponState;
   /**
    * true khi mã freeship không tiết kiệm được gì vì hình thức nhận hàng đang
    * chọn vốn đã miễn phí — nói thẳng còn hơn để người dùng tưởng mã có tác dụng.
@@ -79,7 +108,9 @@ export function getOrderSummary(
   const requested = getCoupon(couponCode);
   // Mã không đủ điều kiện thì KHÔNG trừ tiền, nhưng vẫn báo lại để trang nói rõ
   // lý do thay vì im lặng bỏ qua mã người dùng đã bấm.
-  const eligible = requested && subtotal >= requested.minSubtotal;
+  const state = requested ? couponState(requested) : undefined;
+  const eligible =
+    requested && state === "dang-chay" && subtotal >= requested.minSubtotal;
   const coupon = eligible ? requested : undefined;
 
   const delivery = getDeliveryMethod(deliveryId);
@@ -99,6 +130,7 @@ export function getOrderSummary(
     delivery,
     shipping,
     couponRejected: Boolean(requested) && !eligible,
+    couponState: state,
     freeshipRedundant: coupon?.kind === "freeship" && baseShipping === 0,
     total: subtotal - couponDiscount + shipping,
   };

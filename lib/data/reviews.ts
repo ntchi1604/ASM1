@@ -83,11 +83,12 @@ export const reviews: Review[] = [
 
 export function getReviews(productId: string): Review[] {
   // Mới nhất lên trước: người mua muốn biết chất lượng gần đây, không phải
-  // nhận xét từ hai năm trước.
+  // nhận xét từ hai năm trước. Đánh giá bị quản trị ẩn thì không lên trang.
   return reviews
-    .filter((review) => review.productId === productId)
+    .filter((review) => review.productId === productId && !review.hidden)
     .sort((a, b) => b.date.localeCompare(a.date));
 }
+
 
 /**
  * Các phương án phần đuôi (3 sao, 2 sao, 1 sao), xếp từ "thật" nhất xuống.

@@ -14,6 +14,7 @@ import { aiMockNotice } from "@/lib/ai/engine";
 import { knownIngredients, severityLabel } from "@/lib/data/interactions";
 import { getCartItems } from "@/lib/data/cart";
 import { site } from "@/lib/data/site";
+import { readCartLines } from "@/lib/shop/cart-cookie";
 import {
   AlertTriangle,
   Check,
@@ -58,7 +59,7 @@ export default async function InteractionPage({
 
   // Cho phép nạp sẵn thuốc trong giỏ: người dùng tới đây từ cảnh báo ở giỏ hàng
   // thì không phải gõ lại những thứ họ vừa chọn.
-  const cartNames = getCartItems().map((item) => item.product.name);
+  const cartNames = getCartItems(await readCartLines()).map((item) => item.product.name);
 
   return (
     <AiPageShell

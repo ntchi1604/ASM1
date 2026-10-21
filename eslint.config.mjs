@@ -71,6 +71,11 @@ const noRawProductImage = {
   ignores: [
     "components/product/ProductImage.tsx",
     "components/product/ProductThumb.tsx",
+    // Ảnh biên tập (hero, bìa bài viết): đường dẫn là hằng trong mã, không
+    // phải `product.image` có thể rỗng, nên không có nhánh placeholder nào
+    // để mà rơi vào.
+    "components/home/HeroSection.tsx",
+    "components/home/HealthArticles.tsx",
   ],
   rules: {
     "no-restricted-imports": [

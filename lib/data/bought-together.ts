@@ -24,7 +24,7 @@ export type BoughtTogether = {
   suggestions: Suggestion[];
 };
 
-const boughtTogether: BoughtTogether[] = [
+export const boughtTogether: BoughtTogether[] = [
   {
     productId: "hapacol-650",
     basis: "Dựa trên triệu chứng sốt và cảm cúm thông thường",
@@ -167,7 +167,7 @@ export function getCartSuggestions(
  * nếu tôi viết sai: "thường mua kèm" mà lại gợi ý đúng thứ người dùng đang xem
  * cả trang thì vô nghĩa — đó là danh sách sản phẩm, không phải gợi ý mua kèm.
  */
-const categoryCombos: { categorySlug: string; basis: string; suggestions: Suggestion[] }[] = [
+export const categoryCombos: { categorySlug: string; basis: string; suggestions: Suggestion[] }[] = [
   {
     categorySlug: "cam-cum-ha-sot",
     basis: "Dựa trên đơn hàng của khách mua thuốc cảm cúm, hạ sốt",

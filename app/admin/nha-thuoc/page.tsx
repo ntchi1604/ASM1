@@ -6,7 +6,10 @@ import { Card, SectionHeading } from "@/components/ui/Card";
 import { AdminButtonForm, AdminForm } from "@/components/admin/AdminForm";
 import { Field, Input } from "@/components/ui/Field";
 import { pharmacies } from "@/lib/data/pharmacies";
+import { requireSession } from "@/lib/admin/auth";
 import { deletePharmacy, savePharmacy } from "@/lib/admin/actions";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
 import { AlertTriangle, Store } from "@/lib/icons";
 
 export const metadata: Metadata = {
@@ -26,8 +29,23 @@ export const metadata: Metadata = {
  * Cảnh báo đó in thẳng trên trang: xoá hoặc đổi nó là đổi địa chỉ khách đến lấy
  * hàng, và không có gì trên giao diện nói ra điều đó.
  */
-export default function AdminPharmaciesPage() {
+export default async function AdminPharmaciesPage({
+  searchParams,
+}: PageProps<"/admin/nha-thuoc">) {
+  const session = await requireSession();
+  const canDelete = session.role === "duoc-si";
+  const filter = readFilter(await searchParams, ["q", "quan"]);
   const pickup = pharmacies[0];
+  const districts = [...new Set(pharmacies.map((item) => item.district))].sort((a, b) =>
+    a.localeCompare(b, "vi"),
+  );
+
+  // Bảng và danh sách sửa dưới dùng chung `visible`: cùng một dữ liệu hai chỗ.
+  const visible = pharmacies.filter(
+    (pharmacy) =>
+      matchesQuery(filter.q, pharmacy.name, pharmacy.address, pharmacy.district, pharmacy.phone) &&
+      (!filter.quan || pharmacy.district === filter.quan),
+  );
 
   return (
     <AdminShell activeHref="/admin/nha-thuoc">
@@ -67,10 +85,28 @@ export default function AdminPharmaciesPage() {
           </div>
         </Card>
 
+        <AdminFilterBar
+          action="/admin/nha-thuoc"
+          query={filter.q}
+          placeholder="Tên, địa chỉ hoặc số điện thoại"
+          selects={[
+            {
+              name: "quan",
+              label: "Quận",
+              value: filter.quan,
+              options: districts.map((district) => ({ value: district, label: district })),
+            },
+          ]}
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
             <SectionHeading
-              title="Danh sách"
+              title={
+                visible.length === pharmacies.length
+                  ? "Danh sách"
+                  : `${visible.length} / ${pharmacies.length} nhà thuốc khớp bộ lọc`
+              }
               action={
                 <span className="flex items-center gap-1.5 text-body-sm text-ink-subtle">
                   <Store size={15} aria-hidden />
@@ -79,6 +115,11 @@ export default function AdminPharmaciesPage() {
               }
             />
           </div>
+          {visible.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              Không có nhà thuốc nào khớp bộ lọc đang chọn.
+            </p>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-t border-hairline text-left">
               <thead className="bg-recessed">
@@ -91,8 +132,12 @@ export default function AdminPharmaciesPage() {
                 </tr>
               </thead>
               <tbody>
-                {pharmacies.map((pharmacy) => (
-                  <tr key={pharmacy.name} className="border-t border-divider align-top">
+                {visible.map((pharmacy) => (
+                  <tr
+                    key={pharmacy.name}
+                    id={`nt-${pharmacy.name.replace(/\s+/g, "-").toLowerCase()}`}
+                    className="scroll-mt-24 border-t border-divider align-top"
+                  >
                     <td className="px-4 py-3">
                       <span className="block text-body-md text-ink">{pharmacy.name}</span>
                       <span className="mt-0.5 block text-body-sm text-ink-subtle">
@@ -107,18 +152,23 @@ export default function AdminPharmaciesPage() {
                       {pharmacy.hours}
                     </td>
                     <td className="px-4 py-3">
-                      <AdminButtonForm
-                        action={deletePharmacy}
-                        hidden={{ name: pharmacy.name }}
-                        submit="Xoá"
-                        confirm={`Xoá "${pharmacy.name}" khỏi danh sách?`}
-                      />
+                      {canDelete ? (
+                        <AdminButtonForm
+                          action={deletePharmacy}
+                          hidden={{ name: pharmacy.name }}
+                          submit="Xoá"
+                          confirm={`Xoá "${pharmacy.name}" khỏi danh sách?`}
+                        />
+                      ) : (
+                        <span className="text-body-sm text-ink-subtle">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          )}
           <p className="border-t border-hairline px-4 py-3 text-body-sm text-ink-subtle">
             Trang Hệ thống nhà thuốc cũng ghi rõ đây là danh sách mẫu, còn{" "}
             <Link href="/he-thong-nha-thuoc" className="focus-ring rounded-chip text-trust-text hover:underline">
@@ -136,7 +186,7 @@ export default function AdminPharmaciesPage() {
             </p>
           </div>
           <ul className="border-t border-hairline">
-            {pharmacies.map((pharmacy) => (
+            {visible.map((pharmacy) => (
               <li key={pharmacy.name} className="border-b border-divider last:border-b-0">
                 <details>
                   <summary className="focus-ring flex cursor-pointer items-center justify-between gap-2 px-4 py-3 hover:bg-recessed md:px-5">

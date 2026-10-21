@@ -26,7 +26,7 @@ export function ChipLink({
       href={href}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "focus-ring inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 text-body-sm transition-colors",
+        "focus-ring inline-flex shrink-0 items-center gap-1.5 rounded-chip border px-3 py-1.5 text-body-sm whitespace-nowrap transition-colors",
         active
           ? "border-trust bg-trust-wash font-medium text-trust-text"
           : "border-hairline bg-card text-ink-muted hover:border-trust hover:text-trust-text",

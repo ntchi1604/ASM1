@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Lightbulb, Plus, Stethoscope } from "@/lib/icons";
 import { AiBlock } from "@/components/ai/AiBlock";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { AddToCartForm } from "@/components/cart/AddToCartForm";
+import { ButtonLink } from "@/components/ui/Button";
 import { ProductThumb } from "@/components/product/ProductThumb";
 import { getDefaultUnit } from "@/lib/data/products";
 import { formatPricePerUnit } from "@/lib/format";
@@ -62,10 +63,13 @@ export function CartSuggestions({ items }: { items: SuggestedProduct[] }) {
                   Cần đơn
                 </ButtonLink>
               ) : (
-                <Button variant="outline-trust" size="sm">
-                  <Plus size={15} aria-hidden />
-                  Thêm
-                </Button>
+                <AddToCartForm
+                  product={product}
+                  variant="outline-trust"
+                  size="sm"
+                  icon={<Plus size={15} aria-hidden />}
+                  label="Thêm"
+                />
               )}
             </li>
           );

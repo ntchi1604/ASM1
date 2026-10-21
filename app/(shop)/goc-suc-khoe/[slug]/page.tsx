@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommentSection } from "@/components/article/CommentSection";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Card } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { articles } from "@/lib/data/home";
 import { getArticleBySlug, getOtherArticles } from "@/lib/data/articles";
+import { getComments } from "@/lib/data/comments";
 import { formatDate } from "@/lib/format";
 import { AlertTriangle, Clock, Stethoscope } from "@/lib/icons";
 
@@ -31,8 +33,10 @@ export async function generateMetadata({
 
 export default async function HealthArticlePage({
   params,
+  searchParams,
 }: PageProps<"/goc-suc-khoe/[slug]">) {
   const { slug } = await params;
+  const { "binh-luan": commentCode } = await searchParams;
   const article = getArticleBySlug(slug);
   if (!article) notFound();
 
@@ -107,6 +111,12 @@ export default async function HealthArticlePage({
           </ButtonLink>
         </div>
       </aside>
+
+      <CommentSection
+        articleSlug={slug}
+        comments={getComments(slug)}
+        messageCode={typeof commentCode === "string" ? commentCode : undefined}
+      />
 
       <section className="mt-8 max-w-3xl">
         <h2 className="text-headline-md text-ink">Đọc tiếp</h2>

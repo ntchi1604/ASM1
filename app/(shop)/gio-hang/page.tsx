@@ -12,6 +12,7 @@ import { getCartItems, getCartProductIds } from "@/lib/data/cart";
 import { getCartSuggestions } from "@/lib/data/bought-together";
 import { getOrderSummary } from "@/lib/data/coupons";
 import { findCartInteractions, severeProductIds } from "@/lib/data/interactions";
+import { readCartLines } from "@/lib/shop/cart-cookie";
 
 export const metadata: Metadata = {
   title: "Giỏ hàng",
@@ -35,13 +36,15 @@ export default async function CartPage({
   const { ma } = await searchParams;
   const couponCode = Array.isArray(ma) ? ma[0] : ma;
 
-  const items = getCartItems();
+  const lines = await readCartLines();
+  const items = getCartItems(lines);
   // Không truyền hình thức nhận hàng: giỏ hàng hiển thị phí mặc định, người dùng
   // chọn hình thức thật ở bước thanh toán.
-  const summary = getOrderSummary(couponCode);
-  const interactions = findCartInteractions(getCartProductIds());
+  const summary = getOrderSummary(couponCode, undefined, lines);
+  const productIds = getCartProductIds(lines);
+  const interactions = findCartInteractions(productIds);
   const flagged = severeProductIds(interactions);
-  const suggestions = getCartSuggestions(getCartProductIds());
+  const suggestions = getCartSuggestions(productIds);
 
   return (
     <div className="container-medivia py-6 md:py-8">
@@ -67,16 +70,10 @@ export default async function CartPage({
               aria-label="Danh sách sản phẩm"
               className="overflow-hidden rounded-card border border-hairline bg-card"
             >
-              <div className="hidden grid-cols-[auto_minmax(0,1fr)_116px_128px_116px] gap-4 border-b border-divider bg-recessed px-4 py-2.5 text-label-sm text-ink-muted md:grid">
-                <span className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    aria-label="Chọn tất cả sản phẩm"
-                    className="focus-ring size-4 accent-trust"
-                  />
-                </span>
-                <span>Chọn tất cả ({items.length})</span>
+              {/* Cột khớp đúng lưới của CartLineRow — lệch một cột là tiêu đề
+                  nằm trên sai số liệu. */}
+              <div className="hidden grid-cols-[minmax(0,1fr)_116px_128px_116px] gap-4 border-b border-divider bg-recessed px-4 py-2.5 text-label-sm text-ink-muted md:grid">
+                <span>Sản phẩm ({items.length})</span>
                 <span>Đơn giá</span>
                 <span>Số lượng</span>
                 <span className="text-right">Tạm tính</span>
@@ -101,6 +98,7 @@ export default async function CartPage({
             <CouponPicker
               applied={summary.coupon}
               rejected={summary.couponRejected}
+              rejectedState={summary.couponState}
               subtotal={summary.subtotal}
             />
 

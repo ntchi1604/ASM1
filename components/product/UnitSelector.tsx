@@ -13,12 +13,12 @@ import { formatVnd } from "@/lib/format";
 export function UnitSelector({
   product,
   selected,
-  basePath,
+  hrefFor,
 }: {
   product: Product;
   selected: ProductUnit;
-  /** Đường dẫn trang hiện tại, ví dụ "/thuoc/hapacol-650". */
-  basePath: string;
+  /** Đường dẫn giữ nguyên số lượng đang chọn. */
+  hrefFor: (label: string) => string;
 }) {
   if (product.units.length <= 1) return null;
 
@@ -31,7 +31,7 @@ export function UnitSelector({
           return (
             <Link
               key={unit.label}
-              href={`${basePath}?dv=${encodeURIComponent(unit.label)}`}
+              href={hrefFor(unit.label)}
               aria-current={active ? "true" : undefined}
               scroll={false}
               className={cn(

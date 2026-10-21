@@ -4,19 +4,19 @@ import { formatVnd } from "@/lib/format";
 import { ProductThumb } from "@/components/product/ProductThumb";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { StockStatus } from "@/components/ui/StockStatus";
+import { removeFromCart, setCartQuantity } from "@/lib/shop/cart-actions";
 import type { CartItem } from "@/lib/data/cart";
 
 /**
  * Một dòng trong giỏ hàng.
  *
+ * Mọi thao tác đều là form gửi lên server action: đổi số lượng, xoá dòng. Không
+ * có `"use client"` — giỏ hàng chạy được cả khi JavaScript chưa tải xong, và
+ * không có bản sao trạng thái nào trong trình duyệt để lệch với cookie.
+ *
  * Có hoạt chất ngay dưới tên thuốc: đây là trang duy nhất người dùng thấy các
  * thuốc cạnh nhau, nên cũng là chỗ duy nhất họ tự nhận ra hai hộp khác tên lại
  * cùng một hoạt chất — đúng thứ mà cảnh báo phía trên đang nói.
- *
- * Tồn kho nằm dưới tên thuốc chứ không ở cột phải: câu tồn kho của MediVia là
- * câu đầy đủ ("Còn 12 hộp tại 3 nhà thuốc gần bạn"), nhồi vào cột hẹp thì xuống
- * dòng lem nhem. Đổi cách viết cho vừa cột thì trang này lại nói khác các trang
- * còn lại.
  *
  * `flagged` đến từ kết quả soát tương tác của cả giỏ, không tự tính lại ở đây:
  * dấu trên dòng và khối cảnh báo phía trên luôn phải kể cùng một câu chuyện.
@@ -32,14 +32,7 @@ export function CartLineRow({
   const original = unit.originalPrice;
 
   return (
-    <li className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-3 border-b border-divider px-4 py-4 last:border-b-0 md:grid-cols-[auto_minmax(0,1fr)_116px_128px_116px] md:items-start md:gap-4">
-      <input
-        type="checkbox"
-        defaultChecked
-        aria-label={`Chọn ${product.name}`}
-        className="focus-ring mt-1 size-4 shrink-0 accent-trust"
-      />
-
+    <li className="grid grid-cols-1 items-start gap-y-3 border-b border-divider px-4 py-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_116px_128px_116px] md:gap-4">
       <div className="flex min-w-0 gap-3">
         <ProductThumb product={product} size="lg" />
 
@@ -78,7 +71,7 @@ export function CartLineRow({
           </div>
 
           <div className="mt-2">
-            <RemoveButton name={product.name} />
+            <RemoveButton productId={product.id} unitLabel={unit.label} name={product.name} />
           </div>
         </div>
       </div>
@@ -93,13 +86,20 @@ export function CartLineRow({
         ) : null}
       </div>
 
-      {/* Số lượng */}
-      <div className="col-start-2 md:col-start-auto">
-        <QuantityStepper value={line.quantity} max={product.stock.total} compact />
-      </div>
+      {/* Số lượng — mỗi nút là một lần gửi form, không cần JS. */}
+      <form action={setCartQuantity} className="md:pt-0">
+        <input type="hidden" name="productId" value={product.id} />
+        <input type="hidden" name="unitLabel" value={unit.label} />
+        <QuantityStepper
+          value={line.quantity}
+          max={product.stock.total}
+          compact
+          submitName="quantity"
+        />
+      </form>
 
       {/* Tạm tính */}
-      <div className="col-start-2 flex items-baseline justify-between md:col-start-auto md:justify-end">
+      <div className="flex items-baseline justify-between md:justify-end">
         <span className="text-body-sm text-ink-muted md:hidden">Tạm tính</span>
         <span className="text-label-md tabular-nums text-ink">{formatVnd(lineTotal)}</span>
       </div>
@@ -107,15 +107,27 @@ export function CartLineRow({
   );
 }
 
-function RemoveButton({ name }: { name: string }) {
+function RemoveButton({
+  productId,
+  unitLabel,
+  name,
+}: {
+  productId: string;
+  unitLabel: string;
+  name: string;
+}) {
   return (
-    <button
-      type="button"
-      aria-label={`Xoá ${name} khỏi giỏ hàng`}
-      className="focus-ring -ml-2 inline-flex items-center gap-1.5 rounded-chip px-2 py-1 text-label-sm text-ink-subtle transition-colors hover:bg-danger-wash hover:text-danger"
-    >
-      <Delete size={14} aria-hidden />
-      Xoá
-    </button>
+    <form action={removeFromCart}>
+      <input type="hidden" name="productId" value={productId} />
+      <input type="hidden" name="unitLabel" value={unitLabel} />
+      <button
+        type="submit"
+        aria-label={`Xoá ${name} khỏi giỏ hàng`}
+        className="focus-ring -ml-2 inline-flex items-center gap-1.5 rounded-chip px-2 py-1 text-label-sm text-ink-subtle transition-colors hover:bg-danger-wash hover:text-danger"
+      >
+        <Delete size={14} aria-hidden />
+        Xoá
+      </button>
+    </form>
   );
 }

@@ -12,6 +12,7 @@
   --color-ai: #7c5cff; /* CHỈ dành cho nội dung do AI tạo */
   --color-danger: #dc2626; /* cảnh báo, thuốc kê đơn */
   --color-ink: #0f1d2e; /* chữ chính */
+  --color-navy: #0a2540; /* nền footer, chữ trên nền sáng */
 
   /* --- Biến thể cho chữ cỡ nhỏ (đủ tương phản trên nền sáng) --- */
   --color-trust-text: #0b7a70;

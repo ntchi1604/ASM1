@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, RotateCcw, ShieldCheck } from "@/lib/icons";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select, Textarea } from "@/components/ui/Field";
+import { districts, provinces, wards } from "@/lib/data/address";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { DeliveryOptions } from "@/components/checkout/DeliveryOptions";
 import { OrderItems } from "@/components/checkout/OrderItems";
@@ -14,6 +15,8 @@ import { getCartItems } from "@/lib/data/cart";
 import { getOrderSummary } from "@/lib/data/coupons";
 import { getDeliveryMethod, type DeliveryMethodId } from "@/lib/data/delivery";
 import { getPaymentMethod, type PaymentMethodId } from "@/lib/data/payment";
+import { readCartLines } from "@/lib/shop/cart-cookie";
+import { defaultAddress, readAddresses } from "@/lib/shop/address-book";
 import { placeOrder } from "./actions";
 
 export const metadata: Metadata = {
@@ -21,10 +24,6 @@ export const metadata: Metadata = {
   description:
     "Xác nhận thông tin nhận hàng, hình thức giao và phương thức thanh toán cho đơn thuốc của bạn.",
 };
-
-const provinces = ["TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng"];
-const districts = ["Quận 3", "Quận 1", "Quận 10"];
-const wards = ["Phường Võ Thị Sáu", "Phường Đa Kao", "Phường 5"];
 
 /**
  * Trang thanh toán.
@@ -44,9 +43,17 @@ export default async function CheckoutPage({
   const couponCode = first(params.ma);
   const delivery = getDeliveryMethod(first(params.nhan));
   const payment = getPaymentMethod(first(params.tt));
+  const error = first(params.loi);
+  const chosenAddressId = first(params["dia-chi"]);
 
-  const items = getCartItems();
-  const summary = getOrderSummary(couponCode, delivery.id);
+  const lines = await readCartLines();
+  const items = getCartItems(lines);
+  const summary = getOrderSummary(couponCode, delivery.id, lines);
+  // Địa chỉ đã lưu điền sẵn — khách mua lại không phải gõ lại số nhà mỗi lần.
+  // Nút "Mua với địa chỉ này" ở trang tài khoản trỏ tới `?dia-chi=<id>`; id lạ
+  // hoặc thiếu thì rơi về địa chỉ mặc định chứ không rơi về form trống.
+  const addresses = await readAddresses();
+  const saved = addresses.find((address) => address.id === chosenAddressId) ?? defaultAddress(addresses);
 
   /** Giữ nguyên các lựa chọn khác khi đổi một lựa chọn. */
   const buildHref = (next: Record<string, string>) => {
@@ -94,12 +101,31 @@ export default async function CheckoutPage({
         */}
         <input type="hidden" name="nhan" value={delivery.id} />
         <input type="hidden" name="tt" value={payment.id} />
+        {/* Mã giảm giá cũng chỉ nằm trong URL, phải chép vào đơn thì mới ghi lại được. */}
+        {couponCode ? <input type="hidden" name="ma" value={couponCode} /> : null}
+
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-card border border-danger/30 bg-danger-wash px-4 py-3 text-body-sm text-danger lg:col-span-2"
+          >
+            {error === "ma-don"
+              ? "Không tạo được mã đơn, vui lòng thử lại."
+              : "Thông tin nhận hàng chưa hợp lệ. Kiểm tra họ tên, số điện thoại và địa chỉ."}
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-5">
           <Step number={1} title="Thông tin người nhận">
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Họ và tên" id="ho-ten" required>
-                <Input id="ho-ten" name="hoTen" autoComplete="name" required />
+                <Input
+                  id="ho-ten"
+                  name="hoTen"
+                  autoComplete="name"
+                  defaultValue={saved?.name}
+                  required
+                />
               </Field>
               <Field label="Số điện thoại" id="dien-thoai" required>
                 <Input
@@ -108,6 +134,7 @@ export default async function CheckoutPage({
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
+                  defaultValue={saved?.phone}
                   required
                 />
               </Field>
@@ -121,7 +148,7 @@ export default async function CheckoutPage({
               </Field>
 
               <Field label="Tỉnh / Thành phố" id="tinh" required>
-                <Select id="tinh" name="tinh" defaultValue={provinces[0]} required>
+                <Select id="tinh" name="tinh" defaultValue={saved?.province ?? provinces[0]} required>
                   {provinces.map((province) => (
                     <option key={province} value={province}>
                       {province}
@@ -130,7 +157,7 @@ export default async function CheckoutPage({
                 </Select>
               </Field>
               <Field label="Quận / Huyện" id="quan" required>
-                <Select id="quan" name="quan" defaultValue={districts[0]} required>
+                <Select id="quan" name="quan" defaultValue={saved?.district ?? districts[0]} required>
                   {districts.map((district) => (
                     <option key={district} value={district}>
                       {district}
@@ -139,7 +166,7 @@ export default async function CheckoutPage({
                 </Select>
               </Field>
               <Field label="Phường / Xã" id="phuong" required>
-                <Select id="phuong" name="phuong" defaultValue={wards[0]} required>
+                <Select id="phuong" name="phuong" defaultValue={saved?.ward ?? wards[0]} required>
                   {wards.map((ward) => (
                     <option key={ward} value={ward}>
                       {ward}
@@ -157,6 +184,7 @@ export default async function CheckoutPage({
                   id="dia-chi"
                   name="diaChi"
                   autoComplete="street-address"
+                  defaultValue={saved?.street}
                   required
                 />
               </Field>

@@ -7,7 +7,10 @@ import { AdminButtonForm, AdminForm } from "@/components/admin/AdminForm";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { staticPages } from "@/lib/data/pages";
 import { formatSections } from "@/lib/admin/page-text";
+import { requireSession } from "@/lib/admin/auth";
 import { deletePage, savePage } from "@/lib/admin/actions";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
 
 export const metadata: Metadata = {
   title: "Trang chữ",
@@ -31,8 +34,14 @@ const syntaxHelp = [
   { code: "- Gạch đầu dòng", meaning: "Một dòng trong danh sách." },
 ];
 
-export default function AdminPagesPage() {
+export default async function AdminPagesPage({ searchParams }: PageProps<"/admin/trang">) {
+  const session = await requireSession();
+  const canDelete = session.role === "duoc-si";
+  const filter = readFilter(await searchParams, ["q"]);
   const totalSections = staticPages.reduce((sum, page) => sum + page.sections.length, 0);
+  const visible = staticPages.filter((page) =>
+    matchesQuery(filter.q, page.title, page.lead, page.slug),
+  );
 
   return (
     <AdminShell activeHref="/admin/trang">
@@ -74,13 +83,34 @@ export default function AdminPagesPage() {
           </p>
         </Card>
 
+        <AdminFilterBar
+          action="/admin/trang"
+          query={filter.q}
+          placeholder="Tiêu đề, dòng dẫn hoặc đường dẫn"
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
-            <SectionHeading title="Sửa trang" />
+            <SectionHeading
+              title={
+                visible.length === staticPages.length
+                  ? "Sửa trang"
+                  : `${visible.length} / ${staticPages.length} trang khớp bộ lọc`
+              }
+            />
           </div>
+          {visible.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              Không có trang nào khớp bộ lọc đang chọn.
+            </p>
+          ) : (
           <ul className="border-t border-hairline">
-            {staticPages.map((page) => (
-              <li key={page.slug} className="border-b border-divider last:border-b-0">
+            {visible.map((page) => (
+              <li
+                key={page.slug}
+                id={`tr-${page.slug}`}
+                className="scroll-mt-24 border-b border-divider last:border-b-0"
+              >
                 <details>
                   <summary className="focus-ring flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-recessed md:px-5">
                     <span className="min-w-0">
@@ -147,19 +177,22 @@ export default function AdminPagesPage() {
                       </Field>
                     </AdminForm>
 
-                    <div className="mt-4 border-t border-hairline pt-4">
-                      <AdminButtonForm
-                        action={deletePage}
-                        hidden={{ slug: page.slug }}
-                        submit="Xoá trang"
-                        confirm={`Xoá trang "${page.title}"? Địa chỉ /${page.slug} sẽ thành trang lỗi.`}
-                      />
-                    </div>
+                    {canDelete ? (
+                      <div className="mt-4 border-t border-hairline pt-4">
+                        <AdminButtonForm
+                          action={deletePage}
+                          hidden={{ slug: page.slug }}
+                          submit="Xoá trang"
+                          confirm={`Xoá trang "${page.title}"? Địa chỉ /${page.slug} sẽ thành trang lỗi.`}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </details>
               </li>
             ))}
           </ul>
+          )}
         </Card>
       </div>
     </AdminShell>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AiBlock } from "@/components/ai/AiBlock";
+import { AddToCartForm } from "@/components/cart/AddToCartForm";
 import { ProductImage } from "@/components/product/ProductImage";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import type { SuggestedProduct } from "@/lib/data/bought-together";
 import { getDefaultUnit } from "@/lib/data/products";
 import { formatPricePerUnit } from "@/lib/format";
@@ -92,10 +93,13 @@ export function SuggestionGrid({
                     Cần đơn bác sĩ
                   </ButtonLink>
                 ) : (
-                  <Button variant="outline-trust" size="sm" fullWidth>
-                    <ShoppingCart size={16} aria-hidden />
-                    Thêm vào giỏ
-                  </Button>
+                  <AddToCartForm
+                    product={product}
+                    variant="outline-trust"
+                    size="sm"
+                    fullWidth
+                    icon={<ShoppingCart size={16} aria-hidden />}
+                  />
                 )}
               </div>
             </li>

@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/Badge";
 import { AdminButtonForm, AdminForm } from "@/components/admin/AdminForm";
 import { Field, Input } from "@/components/ui/Field";
 import { formatVnd } from "@/lib/format";
-import { coupons } from "@/lib/data/coupons";
+import { couponState, coupons } from "@/lib/data/coupons";
 import { deleteCoupon, saveCoupon } from "@/lib/admin/actions";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
 import { Percent } from "@/lib/icons";
 
 export const metadata: Metadata = {
@@ -29,8 +31,32 @@ export const metadata: Metadata = {
 
 const kindLabel = { amount: "Giảm tiền", freeship: "Miễn phí giao hàng" } as const;
 
-export default function AdminCouponsPage() {
-  const amountCoupons = coupons.filter((coupon) => coupon.kind === "amount");
+const stateLabel = {
+  "dang-chay": "Đang chạy",
+  "chua-bat-dau": "Chưa bắt đầu",
+  "het-han": "Hết hạn",
+} as const;
+
+/** "01/10/2026 → 31/10/2026", hoặc một đầu nếu chỉ đặt một mốc. */
+function windowLabel(coupon: (typeof coupons)[number]) {
+  const date = (value: string) => value.split("-").reverse().join("/");
+  if (coupon.startAt && coupon.endAt) return `${date(coupon.startAt)} → ${date(coupon.endAt)}`;
+  if (coupon.startAt) return `Từ ${date(coupon.startAt)}`;
+  if (coupon.endAt) return `Đến ${date(coupon.endAt)}`;
+  return "Không giới hạn thời gian";
+}
+
+export default async function AdminCouponsPage({ searchParams }: PageProps<"/admin/uu-dai">) {
+  const filter = readFilter(await searchParams, ["q", "trang-thai", "loai"]);
+  const visibleCoupons = coupons.filter((coupon) => {
+    if (!matchesQuery(filter.q, coupon.code, coupon.description)) return false;
+    if (filter["trang-thai"] && couponState(coupon) !== filter["trang-thai"]) return false;
+    if (filter.loai && coupon.kind !== filter.loai) return false;
+    return true;
+  });
+
+  const activeCoupons = coupons.filter((coupon) => couponState(coupon) === "dang-chay");
+  const amountCoupons = activeCoupons.filter((coupon) => coupon.kind === "amount");
   const biggest = amountCoupons.reduce(
     (max, coupon) => (coupon.amount > max ? coupon.amount : max),
     0,
@@ -48,7 +74,11 @@ export default function AdminCouponsPage() {
         </header>
 
         <section aria-label="Chỉ số ưu đãi" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Mã đang chạy" value={`${coupons.length} mã`} />
+          <StatCard
+            label="Mã đang chạy"
+            value={`${activeCoupons.length} mã`}
+            hint={`${coupons.length - activeCoupons.length} mã ngoài thời gian chạy`}
+          />
           <StatCard
             label="Mã giảm tiền"
             value={`${amountCoupons.length} mã`}
@@ -61,10 +91,40 @@ export default function AdminCouponsPage() {
           />
         </section>
 
+        <AdminFilterBar
+          action="/admin/uu-dai"
+          query={filter.q}
+          placeholder="Mã hoặc nội dung mô tả"
+          selects={[
+            {
+              name: "trang-thai",
+              label: "Hiệu lực",
+              value: filter["trang-thai"],
+              options: (["dang-chay", "chua-bat-dau", "het-han"] as const).map((state) => ({
+                value: state,
+                label: stateLabel[state],
+              })),
+            },
+            {
+              name: "loai",
+              label: "Loại",
+              value: filter.loai,
+              options: (["amount", "freeship"] as const).map((kind) => ({
+                value: kind,
+                label: kindLabel[kind],
+              })),
+            },
+          ]}
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
             <SectionHeading
-              title="Sửa mã đang có"
+              title={
+                visibleCoupons.length === coupons.length
+                  ? "Sửa mã đang có"
+                  : `${visibleCoupons.length} / ${coupons.length} mã khớp bộ lọc`
+              }
               action={
                 <span className="flex items-center gap-1.5 text-body-sm text-ink-subtle">
                   <Percent size={15} aria-hidden />
@@ -73,9 +133,18 @@ export default function AdminCouponsPage() {
               }
             />
           </div>
+          {visibleCoupons.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              Không có mã nào khớp bộ lọc đang chọn.
+            </p>
+          ) : (
           <ul className="border-t border-hairline">
-            {coupons.map((coupon) => (
-              <li key={coupon.code} className="border-b border-divider last:border-b-0">
+            {visibleCoupons.map((coupon) => (
+              <li
+                key={coupon.code}
+                id={`ma-${coupon.code}`}
+                className="scroll-mt-24 border-b border-divider last:border-b-0"
+              >
                 <details>
                   <summary className="focus-ring flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-recessed md:px-5">
                     <span className="min-w-0">
@@ -86,9 +155,15 @@ export default function AdminCouponsPage() {
                         <Badge tone={coupon.kind === "freeship" ? "neutral" : "promo"}>
                           {kindLabel[coupon.kind]}
                         </Badge>
+                        <Badge tone={couponState(coupon) === "het-han" ? "promo" : "neutral"}>
+                          {stateLabel[couponState(coupon)]}
+                        </Badge>
                       </span>
                       <span className="mt-0.5 block text-body-sm text-ink-subtle">
                         {coupon.description}
+                      </span>
+                      <span className="mt-0.5 block text-body-sm text-ink-subtle">
+                        {windowLabel(coupon)}
                       </span>
                     </span>
                     <span className="text-label-sm text-trust-text">Sửa</span>
@@ -150,6 +225,32 @@ export default function AdminCouponsPage() {
                       </Field>
 
                       <Field
+                        label="Bắt đầu"
+                        id={`start-${coupon.code}`}
+                        hint="Bỏ trống = chạy ngay."
+                      >
+                        <Input
+                          id={`start-${coupon.code}`}
+                          name="startAt"
+                          type="date"
+                          defaultValue={coupon.startAt ?? ""}
+                        />
+                      </Field>
+
+                      <Field
+                        label="Kết thúc"
+                        id={`end-${coupon.code}`}
+                        hint="Tính cả ngày này; bỏ trống = không hết hạn."
+                      >
+                        <Input
+                          id={`end-${coupon.code}`}
+                          name="endAt"
+                          type="date"
+                          defaultValue={coupon.endAt ?? ""}
+                        />
+                      </Field>
+
+                      <Field
                         label="Mô tả"
                         id={`desc-${coupon.code}`}
                         required
@@ -178,6 +279,7 @@ export default function AdminCouponsPage() {
               </li>
             ))}
           </ul>
+          )}
         </Card>
 
         <Card className="overflow-hidden">
@@ -209,6 +311,12 @@ export default function AdminCouponsPage() {
                 </Field>
                 <Field label="Đơn tối thiểu (₫)" id="new-min" required>
                   <Input id="new-min" name="minSubtotal" type="number" min={0} step={1000} required />
+                </Field>
+                <Field label="Bắt đầu" id="new-start" hint="Bỏ trống = chạy ngay.">
+                  <Input id="new-start" name="startAt" type="date" />
+                </Field>
+                <Field label="Kết thúc" id="new-end" hint="Bỏ trống = không hết hạn.">
+                  <Input id="new-end" name="endAt" type="date" />
                 </Field>
                 <Field label="Mô tả" id="new-desc" required className="md:col-span-2">
                   <Input

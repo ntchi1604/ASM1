@@ -115,6 +115,49 @@ export type Review = {
   /** ISO date. */
   date: string;
   body: string;
+  /**
+   * Tên tệp trong `.data/uploads`, không phải URL. URL dựng lại bằng
+   * `mediaUrl()` — lưu URL vào dữ liệu thì đổi đường dẫn phục vụ là mọi
+   * đánh giá cũ trỏ vào chỗ không còn gì.
+   */
+  photos?: string[];
+  video?: string;
+  /**
+   * Đơn đã giao dùng để xác thực câu "đã mua tại MediVia". Đánh giá mẫu không
+   * có trường này — chúng có trước khi có đường viết đánh giá.
+   */
+  orderCode?: string;
+  /**
+   * Quản trị ẩn khỏi trang sản phẩm. Ẩn chứ không xoá: nội dung khách viết vẫn
+   * còn để đối chiếu khi có khiếu nại.
+   */
+  hidden?: boolean;
+};
+
+/**
+ * Bình luận dưới bài viết Góc sức khoẻ.
+ *
+ * Khác đánh giá ở chỗ: đánh giá gắn với một đơn đã giao, bình luận chỉ gắn với
+ * bài viết — người đọc hỏi thêm, không cần mua. Vì không có đăng nhập, quyền
+ * sửa/xoá của chính mình chứng minh bằng mã bình luận trong cookie máy này.
+ */
+export type Comment = {
+  id: string;
+  articleSlug: string;
+  author: string;
+  /** Chữ viết tắt hiện trong vòng tròn avatar. */
+  initials: string;
+  /** ISO datetime — bình luận cần giờ, không chỉ ngày. */
+  date: string;
+  body: string;
+  /** Quản trị ẩn khỏi bài viết. Ẩn chứ không xoá, cùng lý do với đánh giá. */
+  hidden?: boolean;
+  /** Trả lời của dược sĩ. Mỗi bình luận một câu trả lời, hiện ngay dưới nó. */
+  reply?: {
+    body: string;
+    author: string;
+    date: string;
+  };
 };
 
 /**

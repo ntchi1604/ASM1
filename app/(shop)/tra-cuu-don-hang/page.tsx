@@ -9,6 +9,8 @@ import { formatDateTime, formatVnd } from "@/lib/format";
 import { getOrderByCode, orderStatusLabel, orderStatusHint } from "@/lib/data/orders";
 import { Package, Phone } from "@/lib/icons";
 import { site } from "@/lib/data/site";
+import { readPlacedOrderCodes } from "@/lib/shop/placed-orders";
+import { OrderActions } from "@/components/shop/OrderActions";
 
 export const metadata: Metadata = {
   title: "Tra cứu đơn hàng",
@@ -34,6 +36,15 @@ export default async function OrderLookupPage({
   const raw = params.ma;
   const code = (Array.isArray(raw) ? raw[0] : raw)?.trim() ?? "";
   const order = code ? getOrderByCode(code) : undefined;
+  const rawState = params["trang-thai"];
+  const actionState = Array.isArray(rawState) ? rawState[0] : rawState;
+
+  /*
+    Nút "đã nhận hàng" / "hoàn trả" chỉ hiện với đơn trên MÁY NÀY. Tra được mã đơn
+    không có nghĩa là chủ đơn — mở nút cho mọi mã là mời người đọc tin nhắn của
+    người khác bấm đóng đơn hộ.
+  */
+  const owned = order ? (await readPlacedOrderCodes()).includes(order.code) : false;
 
   return (
     <ContentPage
@@ -174,6 +185,8 @@ export default async function OrderLookupPage({
             </Link>
             .
           </p>
+
+          {owned ? <OrderActions order={order} messageCode={actionState} /> : null}
         </Card>
       ) : null}
 

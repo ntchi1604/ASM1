@@ -7,6 +7,9 @@ import { staticPages } from "@/lib/data/pages";
 import { articles } from "@/lib/data/home";
 import { mockOrders, prescriptionRows } from "@/lib/data/orders";
 import { pharmacies } from "@/lib/data/pharmacies";
+import { reviews } from "@/lib/data/reviews";
+import { comments } from "@/lib/data/comments";
+import { customers } from "@/lib/data/customers";
 
 /**
  * Kho dữ liệu GHI ĐƯỢC của phần quản trị.
@@ -60,6 +63,9 @@ const collections: Record<string, { rows: Row[]; key: string }> = {
   orders: { rows: mockOrders as unknown as Row[], key: "code" },
   prescriptions: { rows: prescriptionRows as unknown as Row[], key: "orderCode" },
   pharmacies: { rows: pharmacies as unknown as Row[], key: "name" },
+  reviews: { rows: reviews as unknown as Row[], key: "id" },
+  comments: { rows: comments as unknown as Row[], key: "id" },
+  customers: { rows: customers as unknown as Row[], key: "phone" },
 };
 
 export type CollectionName = keyof typeof collections;

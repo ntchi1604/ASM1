@@ -96,6 +96,7 @@ export type Article = {
   author: string;
   date: string;
   readingMinutes: number;
+  image: string;
 };
 
 export const articles: Article[] = [
@@ -108,6 +109,7 @@ export const articles: Article[] = [
     author: "Dược sĩ Nguyễn Minh",
     date: "2026-09-12",
     readingMinutes: 4,
+    image: "/articles/bai-sot-xuat-huyet.webp",
   },
   {
     slug: "uong-khang-sinh-bao-nhieu-ngay",
@@ -118,6 +120,7 @@ export const articles: Article[] = [
     author: "Dược sĩ Trần Thu Hà",
     date: "2026-09-10",
     readingMinutes: 5,
+    image: "/articles/bai-khang-sinh.webp",
   },
   {
     slug: "tuong-tac-thuoc-huyet-ap-va-nsaids",
@@ -128,6 +131,7 @@ export const articles: Article[] = [
     author: "Dược sĩ Lê Hoàng",
     date: "2026-09-08",
     readingMinutes: 3,
+    image: "/articles/bai-tuong-tac-nsaids.webp",
   },
 ];
 

@@ -25,7 +25,8 @@ export function SearchBar({ className }: { className?: string }) {
         );
       }}
       className={cn(
-        "flex h-11 items-center gap-2 rounded-card border border-hairline bg-card px-3",
+        "flex h-11 items-center gap-2 rounded-chip border border-trust/40 bg-card px-2.5 shadow-sm",
+        "hover:border-trust focus-within:border-trust focus-within:ring-2 focus-within:ring-trust/20",
         /*
           `min-w-0` là bắt buộc, không phải để cho đẹp: form này luôn là flex item
           (header truyền `flex-1`), và một flex item mặc định có `min-width: auto`
@@ -40,8 +41,8 @@ export function SearchBar({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="flex shrink-0 items-center gap-1 rounded-chip bg-ai-wash px-2 py-0.5 text-label-sm text-ai-text">
-        <Sparkles size={12} aria-hidden />
+      <span className="mr-0.5 flex shrink-0 items-center gap-1 rounded-chip bg-ai-wash px-2.5 py-1 text-label-sm font-semibold text-ai-text">
+        <Sparkles size={14} aria-hidden />
         AI
       </span>
 
@@ -62,24 +63,26 @@ export function SearchBar({ className }: { className?: string }) {
           type="button"
           onClick={() => router.push("/ai/giong-noi")}
           aria-label="Tìm thuốc bằng giọng nói"
-          className="focus-ring rounded-chip p-1.5 text-ai hover:bg-ai-wash"
+          title="Tìm bằng giọng nói"
+          className="focus-ring rounded-chip p-1.5 text-ai-text hover:bg-ai-wash"
         >
-          <Mic size={18} aria-hidden />
+          <Mic size={19} aria-hidden />
         </button>
         <button
           type="button"
           onClick={() => router.push("/ai/nhan-dien")}
           aria-label="Nhận diện thuốc bằng ảnh"
-          className="focus-ring rounded-chip p-1.5 text-ai hover:bg-ai-wash"
+          title="Nhận diện toa bằng camera"
+          className="focus-ring rounded-chip p-1.5 text-ai-text hover:bg-ai-wash"
         >
-          <Camera size={18} aria-hidden />
+          <Camera size={19} aria-hidden />
         </button>
         <button
           type="submit"
           aria-label="Tìm kiếm"
-          className="focus-ring rounded-card bg-trust p-2 text-white hover:bg-trust-text"
+          className="focus-ring ml-1 grid size-8 place-items-center rounded-chip bg-trust text-white hover:bg-trust-text"
         >
-          <Search size={18} aria-hidden />
+          <Search size={17} aria-hidden />
         </button>
       </div>
     </form>

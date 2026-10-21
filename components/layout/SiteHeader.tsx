@@ -1,20 +1,34 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { MapPin, ShoppingCart, User } from "@/lib/icons";
+import { Heart, MapPin, ShoppingCart, User } from "@/lib/icons";
 import { cn } from "@/lib/cn";
 import { Logo } from "@/components/layout/Logo";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { MainNav } from "@/components/layout/MainNav";
 import { UtilityBar } from "@/components/layout/UtilityBar";
 import { getCartCount } from "@/lib/data/cart";
+import { readCartLines } from "@/lib/shop/cart-cookie";
+import { countWishlist } from "@/lib/shop/wishlist-cookie";
+import { getCustomer } from "@/lib/shop/customer-auth";
 
 /**
  * Header duy nhất của site: nền trắng, sticky, hairline dưới.
  * (Bản gen từ Stitch có 2 biến thể khác nhau — đã chốt dùng bản này.)
+ *
+ * `async` vì số trên badge phải là số trong cookie. Đọc cookie ở đây khiến mọi
+ * trang trong nhóm (shop) render động — cái giá của một badge đúng. Để badge
+ * đứng yên thì header nói 4 khi giỏ có 1, và đó là lỗi người dùng thấy ngay.
  */
-export function SiteHeader() {
+export async function SiteHeader() {
+  const cartCount = getCartCount(await readCartLines());
+  const wishlistCount = await countWishlist();
+  // Lối vào đổi theo trạng thái đăng nhập: đã đăng nhập thì vào thẳng tài khoản,
+  // chưa thì tới form đăng nhập. Trỏ cả hai về `/tai-khoan` cũng chạy, nhưng nhãn
+  // "Tài khoản" cho người chưa có tài khoản là lời hứa sai.
+  const customer = await getCustomer();
+
   return (
-    <header className="sticky top-0 z-50 bg-card">
+    <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md">
       <UtilityBar />
 
       <div className="border-b border-hairline">
@@ -59,8 +73,16 @@ export function SiteHeader() {
               className="hidden lg:flex"
             />
             <HeaderAction
-              href="/tai-khoan"
-              label="Tài khoản"
+              href="/yeu-thich"
+              label="Yêu thích"
+              icon={<Heart size={20} aria-hidden />}
+              badge={wishlistCount}
+              badgeLabel="sản phẩm đã lưu"
+              className="hidden sm:flex"
+            />
+            <HeaderAction
+              href={customer ? "/tai-khoan" : "/dang-nhap"}
+              label={customer ? "Tài khoản" : "Đăng nhập"}
               icon={<User size={20} aria-hidden />}
               className="hidden lg:flex"
             />
@@ -68,7 +90,8 @@ export function SiteHeader() {
               href="/gio-hang"
               label="Giỏ hàng"
               icon={<ShoppingCart size={20} aria-hidden />}
-              badge={getCartCount()}
+              badge={cartCount}
+              badgeLabel="sản phẩm trong giỏ"
             />
           </div>
         </div>
@@ -84,12 +107,15 @@ function HeaderAction({
   label,
   icon,
   badge,
+  badgeLabel = "sản phẩm",
   className,
 }: {
   href: string;
   label: string;
   icon: ReactNode;
   badge?: number;
+  /** Phần đuôi của nhãn đọc màn hình: "3 sản phẩm trong giỏ", "2 sản phẩm đã lưu". */
+  badgeLabel?: string;
   /** Chỉ để bật/tắt theo breakpoint. Không dùng để đổi hình thức của nút. */
   className?: string;
 }) {
@@ -97,16 +123,16 @@ function HeaderAction({
     <Link
       href={href}
       className={cn(
-        "focus-ring relative flex min-w-16 flex-col items-center gap-0.5 rounded-card px-2 py-1 text-ink-muted hover:bg-recessed hover:text-trust-text",
+        "focus-ring relative flex items-center gap-1.5 rounded-card px-2.5 py-2 text-label-md text-ink hover:bg-recessed hover:text-trust-text",
         className,
       )}
     >
       {icon}
-      <span className="text-label-sm">{label}</span>
+      <span className="hidden sm:inline">{label}</span>
       {badge && badge > 0 ? (
         <span
-          className="absolute top-0 right-1 flex h-4 min-w-4 items-center justify-center rounded-chip bg-promo px-1 font-mono text-label-sm text-white tabular-nums"
-          aria-label={`${badge} sản phẩm trong giỏ`}
+          className="flex h-5 min-w-5 items-center justify-center rounded-chip bg-promo px-1 font-mono text-label-sm font-bold text-white tabular-nums"
+          aria-label={`${badge} ${badgeLabel}`}
         >
           {badge}
         </span>

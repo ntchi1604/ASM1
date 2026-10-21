@@ -5,8 +5,9 @@ import { getProductsOnSale } from "@/lib/data/products";
 import Link from "next/link";
 
 /**
- * Khối giảm giá. Đây là chỗ duy nhất ở trang chủ dùng nền cam đặc —
- * cam nghĩa là khuyến mãi, nên không dùng cho khối nào khác.
+ * Khối giảm giá. Cam nghĩa là khuyến mãi, nên chỉ khối này dùng cam.
+ * Header nền cam nhạt + chữ cam đậm, còn ô đếm ngược mới là cam đặc: một
+ * dải cam đặc cao 50px đầu khối hút mắt khỏi chính các thẻ sản phẩm bên dưới.
  */
 export function FlashSale() {
   const items = getProductsOnSale().slice(0, 5);
@@ -23,8 +24,8 @@ export function FlashSale() {
   return (
     <section className="container-medivia pb-8 md:pb-10">
       <div className="overflow-hidden rounded-card border border-hairline">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-promo px-4 py-3">
-          <h2 className="flex items-center gap-2 font-headline text-headline-md text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-promo/30 bg-promo-wash px-4 py-3">
+          <h2 className="flex items-center gap-2 font-headline text-headline-md text-promo-text">
             <Zap size={20} aria-hidden />
             Giảm giá hôm nay
           </h2>

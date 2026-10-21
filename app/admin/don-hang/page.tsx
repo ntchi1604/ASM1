@@ -18,7 +18,9 @@ import { reportPeriod } from "@/lib/data/sales";
 import { getRow } from "@/lib/admin/db";
 import { setOrderStatus } from "@/lib/admin/actions";
 import { AdminForm } from "@/components/admin/AdminForm";
-import { Field, Select } from "@/components/ui/Field";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { Field, Input, Select } from "@/components/ui/Field";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
 
 export const metadata: Metadata = {
   title: "Đơn hàng",
@@ -49,6 +51,10 @@ const statusClass: Record<OrderStatus, string> = {
   "da-xac-nhan": "bg-recessed text-ink-muted",
   "dang-giao": "bg-recessed text-ink-muted",
   "da-giao": "bg-recessed text-ink-subtle",
+  "hoan-thanh": "bg-recessed text-ink-subtle",
+  // Hoàn trả là việc đang chờ tiền đi ngược ra — tô cam như mã giảm giá, KHÔNG
+  // tô đỏ: đỏ trên site này là nguy hiểm cho sức khoẻ.
+  "hoan-tra": "bg-promo-wash text-promo-text",
   "da-huy": "bg-recessed text-ink-subtle",
 };
 
@@ -62,10 +68,19 @@ function StatusChip({ status }: { status: OrderStatus }) {
   );
 }
 
-export default function AdminOrdersPage() {
+export default async function AdminOrdersPage({ searchParams }: PageProps<"/admin/don-hang">) {
+  const filter = readFilter(await searchParams, ["q", "trang-thai"]);
   const orders = getOrders();
   const orderStatusCounts = getOrderStatusCounts();
   const statuses = Object.keys(orderStatusCounts) as OrderStatus[];
+  // Lọc chỉ đụng tới bảng bên dưới. Các thẻ số phía trên là số đơn của cả kỳ
+  // báo cáo, không phải của phần đang lọc — đổi chúng theo bộ lọc là hai con số
+  // khác nhau nói về cùng một thứ.
+  const visible = orders.filter(
+    (order) =>
+      matchesQuery(filter.q, order.code, order.customer, order.phone) &&
+      (!filter["trang-thai"] || order.status === filter["trang-thai"]),
+  );
 
   return (
     <AdminShell activeHref="/admin/don-hang">
@@ -79,7 +94,7 @@ export default function AdminOrdersPage() {
           </p>
         </header>
 
-        <section aria-label="Số đơn theo trạng thái" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <section aria-label="Số đơn theo trạng thái" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {statuses.map((status) => (
             <StatCard
               key={status}
@@ -91,10 +106,38 @@ export default function AdminOrdersPage() {
           ))}
         </section>
 
+        <AdminFilterBar
+          action="/admin/don-hang"
+          query={filter.q}
+          placeholder="Mã đơn, tên khách hoặc số điện thoại"
+          selects={[
+            {
+              name: "trang-thai",
+              label: "Trạng thái",
+              value: filter["trang-thai"],
+              options: statuses.map((status) => ({
+                value: status,
+                label: orderStatusLabel[status],
+              })),
+            },
+          ]}
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
-            <SectionHeading title={`${orders.length} đơn gần nhất`} />
+            <SectionHeading
+              title={
+                visible.length === orders.length
+                  ? `${orders.length} đơn gần nhất`
+                  : `${visible.length} / ${orders.length} đơn khớp bộ lọc`
+              }
+            />
           </div>
+          {visible.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              Không có đơn nào khớp bộ lọc đang chọn.
+            </p>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[920px] border-t border-hairline text-left">
               <thead className="bg-recessed">
@@ -110,8 +153,12 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.code} className="border-t border-divider align-top">
+                {visible.map((order) => (
+                  <tr
+                    key={order.code}
+                    id={`don-${order.code}`}
+                    className="scroll-mt-24 border-t border-divider align-top"
+                  >
                     <td className="px-4 py-3">
                       <span className="block font-medium tabular-nums text-body-md text-ink">
                         {order.code}
@@ -171,6 +218,7 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
+          )}
           <p className="border-t border-hairline px-4 py-3 text-body-sm text-ink-subtle">
             Tổng tiền tính bằng đúng hàm trang giỏ hàng và trang thanh toán đang dùng, gồm cả
             phí giao và mã ưu đãi — nên con số ở đây không thể lệch với hoá đơn của khách.
@@ -186,6 +234,8 @@ const allStatuses: OrderStatus[] = [
   "da-xac-nhan",
   "dang-giao",
   "da-giao",
+  "hoan-thanh",
+  "hoan-tra",
   "da-huy",
 ];
 
@@ -206,8 +256,26 @@ function StatusForm({ order }: { order: ReturnType<typeof getOrders>[number] }) 
     order.status !== "da-huy" &&
     prescription?.status !== "da-duyet";
 
+  const request = order.returnRequest;
+
   return (
     <div className="flex flex-col gap-2">
+      {request ? (
+        <div className="rounded-card bg-promo-wash p-2.5">
+          <p className="text-label-sm text-promo-text">
+            {request.decision === "da-chap-nhan"
+              ? "Đã chấp nhận hoàn trả"
+              : request.decision === "tu-choi"
+                ? "Đã từ chối hoàn trả"
+                : "Khách yêu cầu hoàn trả"}
+          </p>
+          <p className="mt-0.5 text-body-sm text-ink-muted">{request.reason}</p>
+          {request.note ? (
+            <p className="mt-0.5 text-body-sm text-ink-subtle">{request.note}</p>
+          ) : null}
+        </div>
+      ) : null}
+
       <AdminForm
         action={setOrderStatus}
         hidden={{ code: order.code }}
@@ -229,6 +297,18 @@ function StatusForm({ order }: { order: ReturnType<typeof getOrders>[number] }) 
               </option>
             ))}
           </Select>
+        </Field>
+        {/*
+          Lý do chỉ cần khi quản trị TỰ chuyển sang hoàn trả. Khách đã xin thì lý
+          do nằm sẵn trong `returnRequest` và action dùng lý do đó. Vẫn hiện ô
+          trống để người xử lý thấy chỗ ghi khi đơn chưa có yêu cầu nào.
+        */}
+        <Field
+          label="Lý do hoàn trả"
+          id={`reason-${order.code}`}
+          hint={request ? "Để trống sẽ dùng lý do khách đã chọn." : "Bắt buộc khi chuyển sang Hoàn trả."}
+        >
+          <Input id={`reason-${order.code}`} name="reason" maxLength={300} placeholder="Hàng vỡ khi giao" />
         </Field>
       </AdminForm>
     </div>

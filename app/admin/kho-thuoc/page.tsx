@@ -5,12 +5,16 @@ import { StatCard, Th } from "@/components/admin/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Card, SectionHeading } from "@/components/ui/Card";
 import { AdminButtonForm, AdminForm } from "@/components/admin/AdminForm";
+import { requireSession } from "@/lib/admin/auth";
 import { Field, Input, Select, Textarea } from "@/components/ui/Field";
 import { formatDate, formatPricePerUnit, formatVnd } from "@/lib/format";
 import { getDefaultUnit, products } from "@/lib/data/products";
 import { categories } from "@/lib/data/categories";
 import { daysOfStock, reportPeriod, resolveStockAlerts } from "@/lib/data/sales";
-import { addProduct, deleteProduct, saveStock } from "@/lib/admin/actions";
+import { addProduct, deleteProduct, saveProduct, saveStock } from "@/lib/admin/actions";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
+import { ProductThumb } from "@/components/product/ProductThumb";
 import type { Audience, Product, ProductUnit, UnitLabel } from "@/lib/types";
 import { AlertTriangle, Boxes } from "@/lib/icons";
 
@@ -76,7 +80,12 @@ function StockChip({ days }: { days: number }) {
   );
 }
 
-export default function AdminInventoryPage() {
+export default async function AdminInventoryPage({
+  searchParams,
+}: PageProps<"/admin/kho-thuoc">) {
+  const session = await requireSession();
+  const canDelete = session.role === "duoc-si";
+  const filter = readFilter(await searchParams, ["q", "danh-muc", "ton"]);
   const alerts = resolveStockAlerts();
   // Tra theo id để mỗi mặt hàng chỉ tra một lần, không lồng vòng lặp trong map.
   const alertByProduct = new Map(alerts.map((alert) => [alert.productId, alert]));
@@ -110,6 +119,30 @@ export default function AdminInventoryPage() {
   const tracked = rows.filter((row) => row.days !== undefined);
   const soldOut = rows.filter((row) => row.product.stock.total <= 0);
   const lowStock = tracked.filter((row) => (row.days ?? 0) <= lowDays);
+
+  // Lọc trên `rows` đã sắp: bảng và danh sách sửa bên dưới dùng CHUNG kết quả
+  // này, vì hai chỗ hiện cùng dữ liệu — lọc một chỗ mà chỗ kia vẫn đủ mặt hàng
+  // là người dùng tưởng bộ lọc hỏng.
+  const visible = rows.filter(({ product, days }) => {
+    const category = categories.find((item) => item.slug === product.categorySlug);
+    if (
+      !matchesQuery(
+        filter.q,
+        product.name,
+        product.activeIngredient,
+        product.brand,
+        product.strength,
+        product.slug,
+        category?.name,
+      )
+    ) {
+      return false;
+    }
+    if (filter["danh-muc"] && product.categorySlug !== filter["danh-muc"]) return false;
+    if (filter.ton === "het" && product.stock.total > 0) return false;
+    if (filter.ton === "sap-het" && (days === undefined || days > lowDays)) return false;
+    return true;
+  });
 
   return (
     <AdminShell activeHref="/admin/kho-thuoc">
@@ -170,10 +203,40 @@ export default function AdminInventoryPage() {
           </Card>
         ) : null}
 
+        <AdminFilterBar
+          action="/admin/kho-thuoc"
+          query={filter.q}
+          placeholder="Tên thuốc, hoạt chất hoặc thương hiệu"
+          selects={[
+            {
+              name: "danh-muc",
+              label: "Danh mục",
+              value: filter["danh-muc"],
+              options: categories.map((category) => ({
+                value: category.slug,
+                label: category.name,
+              })),
+            },
+            {
+              name: "ton",
+              label: "Tồn kho",
+              value: filter.ton,
+              options: [
+                { value: "sap-het", label: `Sắp hết (≤ ${lowDays} ngày)` },
+                { value: "het", label: "Đã hết hàng" },
+              ],
+            },
+          ]}
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
             <SectionHeading
-              title="Tồn kho theo mặt hàng"
+              title={
+                visible.length === rows.length
+                  ? "Tồn kho theo mặt hàng"
+                  : `${visible.length} / ${rows.length} mặt hàng khớp bộ lọc`
+              }
               action={
                 <span className="flex items-center gap-1.5 text-body-sm text-ink-subtle">
                   <Boxes size={15} aria-hidden />
@@ -182,6 +245,11 @@ export default function AdminInventoryPage() {
               }
             />
           </div>
+          {visible.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              Không có mặt hàng nào khớp bộ lọc đang chọn.
+            </p>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] border-t border-hairline text-left">
               <thead className="bg-recessed">
@@ -195,8 +263,12 @@ export default function AdminInventoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ product, unit, days, dailyRate }) => (
-                  <tr key={product.id} className="border-t border-divider">
+                {visible.map(({ product, unit, days, dailyRate }) => (
+                  <tr
+                    key={product.id}
+                    id={`sp-${product.id}`}
+                    className="scroll-mt-24 border-t border-divider"
+                  >
                     <td className="px-4 py-3">
                       <Link
                         href={`/thuoc/${product.slug}`}
@@ -249,6 +321,7 @@ export default function AdminInventoryPage() {
               </tbody>
             </table>
           </div>
+          )}
           <p className="border-t border-hairline px-4 py-3 text-body-sm text-ink-subtle">
             “Còn bán được” tính bằng tồn kho chia tốc độ bán mỗi ngày trong kỳ {reportPeriod.days}{" "}
             ngày. Chỉ {tracked.length} mặt hàng đầu bảng có dữ liệu bán trong kỳ; phần còn lại
@@ -256,7 +329,7 @@ export default function AdminInventoryPage() {
           </p>
         </Card>
 
-        <StockEditor products={rows} />
+        <StockEditor products={visible} canDelete={canDelete} />
 
         <AddProductForm />
 
@@ -289,7 +362,13 @@ export default function AdminInventoryPage() {
  * `units` vì như thế form phải biết đơn vị nào đang tồn tại — một ô bị bỏ trống do
  * lỗi hiển thị sẽ xoá luôn đơn vị đó, và mặt hàng mất giá bán mà không ai được báo.
  */
-function StockEditor({ products: rows }: { products: StockRow[] }) {
+function StockEditor({
+  products: rows,
+  canDelete,
+}: {
+  products: StockRow[];
+  canDelete: boolean;
+}) {
   return (
     <Card className="overflow-hidden">
       <div className="p-4 md:p-5">
@@ -401,26 +480,183 @@ function StockEditor({ products: rows }: { products: StockRow[] }) {
                   ) : null}
                 </AdminForm>
 
-                <div className="mt-4 border-t border-hairline pt-4">
-                  <p className="text-body-sm text-ink-subtle">
-                    Xoá mặt hàng khỏi danh mục. Không hoàn tác được.
+                <div className="mt-5 border-t border-hairline pt-4">
+                  <h3 className="text-label-md text-ink">Thuộc tính mặt hàng</h3>
+                  <p className="mt-1 mb-3 max-w-2xl text-body-sm text-ink-muted">
+                    Tên, phân loại và mô tả. Mã và đường dẫn giữ nguyên — đường dẫn đã
+                    nằm trong liên kết và đơn cũ.
                   </p>
-                  <div className="mt-2">
-                    <AdminButtonForm
-                      action={deleteProduct}
-                      hidden={{ id: product.id }}
-                      submit="Xoá mặt hàng"
-                      variant="outline-trust"
-                      confirm={`Xoá "${product.name}" khỏi danh mục? Thao tác này không hoàn tác được.`}
-                    />
-                  </div>
+                  <ProductAttributesForm product={product} />
                 </div>
+
+                {canDelete ? (
+                  <div className="mt-4 border-t border-hairline pt-4">
+                    <p className="text-body-sm text-ink-subtle">
+                      Xoá mặt hàng khỏi danh mục. Không hoàn tác được.
+                    </p>
+                    <div className="mt-2">
+                      <AdminButtonForm
+                        action={deleteProduct}
+                        hidden={{ id: product.id }}
+                        submit="Xoá mặt hàng"
+                        variant="outline-trust"
+                        confirm={`Xoá "${product.name}" khỏi danh mục? Thao tác này không hoàn tác được.`}
+                      />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </details>
           </li>
         ))}
       </ul>
     </Card>
+  );
+}
+
+/**
+ * Thuộc tính mặt hàng — phần còn lại sau khi giá và tồn kho đã ở form trên.
+ *
+ * Tách khỏi `saveStock` vì hai form cùng gửi một mặt hàng: gộp lại thì mỗi lần
+ * sửa tên cũng phải gửi kèm đúng số tồn đang hiện, và một trang mở từ lâu gửi
+ * lên sẽ ghi đè tồn kho mới hơn bằng con số cũ.
+ */
+function ProductAttributesForm({ product }: { product: Product }) {
+  return (
+    <AdminForm action={saveProduct} hidden={{ id: product.id }} submit="Lưu thuộc tính">
+      <div className="flex items-center gap-3 md:col-span-2">
+        <ProductThumb product={product} size="lg" />
+        <Field
+          label="Ảnh mặt hàng"
+          id={`image-${product.id}`}
+          hint="JPG, PNG hoặc WebP, tối đa 2 MB. Để trống thì giữ ảnh đang dùng."
+        >
+          <input
+            id={`image-${product.id}`}
+            name="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="focus-ring block w-full rounded-card border border-hairline bg-card px-3 py-2 text-body-sm text-ink file:mr-3 file:rounded-chip file:border-0 file:bg-trust-wash file:px-3 file:py-1.5 file:text-label-sm file:text-trust-text"
+          />
+        </Field>
+      </div>
+
+      <Field label="Tên mặt hàng" id={`name-${product.id}`} required className="md:col-span-2">
+        <Input id={`name-${product.id}`} name="name" required defaultValue={product.name} />
+      </Field>
+
+      <Field label="Hoạt chất" id={`ingredient-${product.id}`} hint="Nhiều hoạt chất thì ngăn cách bằng dấu phẩy.">
+        <Input
+          id={`ingredient-${product.id}`}
+          name="activeIngredient"
+          defaultValue={product.activeIngredient}
+        />
+      </Field>
+
+      <Field label="Hàm lượng" id={`strength-${product.id}`}>
+        <Input id={`strength-${product.id}`} name="strength" defaultValue={product.strength} />
+      </Field>
+
+      <Field label="Thương hiệu" id={`brand-${product.id}`}>
+        <Input id={`brand-${product.id}`} name="brand" defaultValue={product.brand} />
+      </Field>
+
+      <Field
+        label="Xuất xứ"
+        id={`origin-${product.id}`}
+        hint="Là một bộ lọc ở trang danh mục, nên gõ giống nhau cho cùng một nước."
+      >
+        <Input id={`origin-${product.id}`} name="origin" defaultValue={product.origin} />
+      </Field>
+
+      <Field label="Danh mục" id={`category-${product.id}`} required>
+        <Select
+          id={`category-${product.id}`}
+          name="categorySlug"
+          required
+          defaultValue={product.categorySlug}
+        >
+          {categories.map((category) => (
+            <option key={category.slug} value={category.slug}>
+              {category.name}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      <Field label="Loại hàng" id={`type-${product.id}`} required>
+        <Select id={`type-${product.id}`} name="type" defaultValue={product.type}>
+          <option value="drug">Thuốc</option>
+          <option value="supplement">Thực phẩm bảo vệ sức khoẻ</option>
+          <option value="cosmetic">Dược mỹ phẩm</option>
+          <option value="device">Thiết bị y tế</option>
+        </Select>
+      </Field>
+
+      <Field label="Dạng bào chế" id={`dosage-${product.id}`} required>
+        <Select id={`dosage-${product.id}`} name="dosageForm" defaultValue={product.dosageForm}>
+          <option value="vien-nen">Viên nén</option>
+          <option value="vien-sui">Viên sủi</option>
+          <option value="siro">Siro</option>
+          <option value="goi-bot">Gói bột</option>
+          <option value="xit-nho">Xịt nhỏ</option>
+          <option value="vien-ngam">Viên ngậm</option>
+          <option value="ong-uong">Ống uống</option>
+          <option value="dung-dich">Dung dịch</option>
+        </Select>
+      </Field>
+
+      <fieldset className="flex flex-col gap-2 md:col-span-2">
+        <legend className="text-label-sm text-ink">Đối tượng dùng được</legend>
+        <p className="text-body-sm text-ink-subtle">
+          Chỉ tích khi nhãn thuốc ghi rõ. Không suy diễn từ hoạt chất.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          {audienceOptions.map((option) => (
+            <label key={option.value} className="flex items-center gap-2 text-body-md text-ink">
+              <input
+                type="checkbox"
+                name="audiences"
+                value={option.value}
+                defaultChecked={product.audiences.includes(option.value)}
+                className="focus-ring size-4 rounded border-hairline"
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <Field
+        label="Mô tả ngắn"
+        id={`uses-${product.id}`}
+        className="md:col-span-2"
+        hint="Hiện dưới tên thuốc ở thẻ sản phẩm, và là nguồn cho khối tóm tắt AI."
+      >
+        <Textarea
+          id={`uses-${product.id}`}
+          name="shortUses"
+          rows={2}
+          defaultValue={product.shortUses}
+        />
+      </Field>
+
+      <label className="flex items-start gap-2 text-body-md text-ink md:col-span-2">
+        <input
+          type="checkbox"
+          name="prescriptionRequired"
+          defaultChecked={product.prescriptionRequired}
+          className="focus-ring mt-1 size-4 shrink-0 rounded border-hairline"
+        />
+        <span>
+          <span className="font-medium">Thuốc kê đơn</span>
+          <span className="mt-0.5 block text-body-sm text-ink-subtle">
+            Tích vào thì mặt hàng mất nút thêm giỏ khắp site và chỉ bán được sau khi dược sĩ
+            duyệt đơn thuốc.
+          </span>
+        </span>
+      </label>
+    </AdminForm>
   );
 }
 
@@ -467,6 +703,21 @@ function AddProductForm() {
 
             <Field label="Đường dẫn công khai" id="new-slug" hint="Để trống thì lấy bằng mã.">
               <Input id="new-slug" name="slug" placeholder="berocca-plus" />
+            </Field>
+
+            <Field
+              label="Ảnh mặt hàng"
+              id="new-image"
+              className="md:col-span-2"
+              hint="JPG, PNG hoặc WebP, tối đa 2 MB. Bỏ trống thì dùng ô chữ cái đầu."
+            >
+              <input
+                id="new-image"
+                name="image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="focus-ring block w-full rounded-card border border-hairline bg-card px-3 py-2 text-body-sm text-ink file:mr-3 file:rounded-chip file:border-0 file:bg-trust-wash file:px-3 file:py-1.5 file:text-label-sm file:text-trust-text"
+              />
             </Field>
 
             <Field label="Tên mặt hàng" id="new-name" required className="md:col-span-2">

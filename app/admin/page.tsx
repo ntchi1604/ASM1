@@ -10,22 +10,26 @@ import { formatVnd } from "@/lib/format";
 import { getDefaultUnit, products } from "@/lib/data/products";
 import { getOrders, orderStatusLabel, getOrderStatusCounts } from "@/lib/data/orders";
 import { getPrescriptionRows } from "@/lib/data/orders";
-import { coupons } from "@/lib/data/coupons";
+import { getActiveCoupons } from "@/lib/data/coupons";
 import { articles } from "@/lib/data/home";
 import { staticPages } from "@/lib/data/pages";
 import { pharmacies } from "@/lib/data/pharmacies";
-import { changedCounts } from "@/lib/admin/db";
+import { changedCounts, listRows } from "@/lib/admin/db";
 import { saveDanger } from "@/lib/admin/actions";
+import { requireSession } from "@/lib/admin/auth";
 import {
   AlertTriangle,
   Boxes,
   FileText,
+  LayoutGrid,
   Package,
   Percent,
   Pill,
   ShieldCheck,
   Store,
   SlidersHorizontal,
+  Star,
+  MessageCircle,
 } from "@/lib/icons";
 
 export const metadata: Metadata = {
@@ -45,13 +49,27 @@ export const metadata: Metadata = {
  * thì người đọc phải tự đi tìm trang — mà đó chính là việc trang này sinh ra để
  * đỡ.
  */
-export default function AdminOverviewPage() {
+export default async function AdminOverviewPage() {
+  const session = await requireSession();
+  const canWipe = session.role === "duoc-si";
   const orders = getOrders();
   const orderStatusCounts = getOrderStatusCounts();
   const pendingOrders = orders.filter((order) => order.status === "cho-xac-nhan");
   const prescriptions = getPrescriptionRows();
   const pendingPrescriptions = prescriptions.filter((row) => row.status === "cho-duyet");
   const soldOut = products.filter((product) => product.stock.total <= 0);
+  // Đọc qua kho delta: danh mục và đánh giá do quản trị/khách tạo không nằm
+  // trong mảng mẫu.
+  const categoryRows = listRows("categories") as unknown as { slug: string }[];
+  const emptyCategories = categoryRows.filter(
+    (category) => !products.some((product) => product.categorySlug === category.slug),
+  ).length;
+  // Đọc qua kho delta: đánh giá khách vừa gửi không nằm trong mảng mẫu.
+  const reviewRows = listRows("reviews") as unknown as { hidden?: boolean }[];
+  const reviewCount = reviewRows.length;
+  const hiddenReviewCount = reviewRows.filter((row) => row.hidden).length;
+  const commentRows = listRows("comments") as unknown as { hidden?: boolean; reply?: unknown }[];
+  const unansweredComments = commentRows.filter((row) => !row.hidden && !row.reply).length;
   const changed = changedCounts();
   const totalChanges = changed.updated + changed.added + changed.removed;
 
@@ -67,6 +85,13 @@ export default function AdminOverviewPage() {
       icon: Pill,
       detail: `${products.length} mặt hàng · ${soldOut.length} tạm hết`,
       warn: soldOut.length > 0,
+    },
+    {
+      href: "/admin/danh-muc",
+      label: "Danh mục",
+      icon: LayoutGrid,
+      detail: `${categoryRows.length} danh mục, ${emptyCategories} danh mục rỗng`,
+      warn: emptyCategories > 0,
     },
     {
       href: "/admin/don-hang",
@@ -86,7 +111,20 @@ export default function AdminOverviewPage() {
       href: "/admin/uu-dai",
       label: "Mã ưu đãi",
       icon: Percent,
-      detail: `${coupons.length} mã đang chạy`,
+      detail: `${getActiveCoupons().length} mã đang chạy`,
+    },
+    {
+      href: "/admin/danh-gia",
+      label: "Đánh giá",
+      icon: Star,
+      detail: `${reviewCount} nhận xét, ${hiddenReviewCount} đang ẩn`,
+    },
+    {
+      href: "/admin/binh-luan",
+      label: "Bình luận",
+      icon: MessageCircle,
+      detail: `${commentRows.length} câu hỏi, ${unansweredComments} chờ trả lời`,
+      warn: unansweredComments > 0,
     },
     {
       href: "/admin/bai-viet",
@@ -119,6 +157,17 @@ export default function AdminOverviewPage() {
       <div className="flex flex-col gap-6">
         <header>
           <h1 className="text-headline-xl text-ink">Tổng quan</h1>
+          <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-body-sm text-ink-muted">
+            <span
+              aria-hidden
+              className={`inline-block size-1.5 rounded-chip ${
+                pendingPrescriptions.length > 0 ? "bg-danger" : "bg-trust"
+              }`}
+            />
+            {pendingPrescriptions.length > 0
+              ? `${pendingPrescriptions.length} đơn thuốc đang chờ duyệt`
+              : "Không có đơn thuốc nào chờ duyệt"}
+          </p>
           <p className="mt-2 max-w-2xl text-body-md text-ink-muted">
             Việc đang chờ xử lý, và lối vào từng phần quản trị. Bấm vào ô nào cũng tới thẳng
             trang sửa được việc đó.
@@ -279,7 +328,7 @@ export default function AdminOverviewPage() {
             <code className="rounded bg-recessed px-1.5 py-0.5 text-label-sm">.data/medivia.json</code>{" "}
             và chỉ lưu phần đã sửa, nên phần còn lại vẫn là mã nguồn. Lược đồ PostgreSQL đầy
             đủ đã thiết kế xong:{" "}
-            <span className="font-medium text-ink">36 bảng + 2 view</span> ở{" "}
+            <span className="font-medium text-ink">39 bảng + 2 view</span> ở{" "}
             <code className="rounded bg-recessed px-1.5 py-0.5 text-label-sm">
               design/medivia-schema.sql
             </code>
@@ -303,7 +352,7 @@ export default function AdminOverviewPage() {
             cạnh các mục quản lý khác là để nó bị bấm nhầm. Gõ chữ xác nhận vì đây
             là thao tác duy nhất xoá dữ liệu người khác đã nhập.
           */}
-          {totalChanges > 0 ? (
+          {totalChanges > 0 && canWipe ? (
             <details className="mt-4 border-t border-hairline pt-4">
               <summary className="focus-ring cursor-pointer text-body-sm text-ink-muted">
                 Xoá mọi thay đổi, quay về dữ liệu trong mã nguồn

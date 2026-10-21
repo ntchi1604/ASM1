@@ -15,6 +15,8 @@ import { requireSession } from "@/lib/admin/auth";
 import { canApprovePrescriptions } from "@/lib/admin/users";
 import { reviewPrescription } from "@/lib/admin/actions";
 import { AdminButtonForm, AdminForm } from "@/components/admin/AdminForm";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
 import { Field, Select } from "@/components/ui/Field";
 import { AlertTriangle, ClipboardList, Clock, FileText, ShieldCheck } from "@/lib/icons";
 
@@ -67,12 +69,26 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / 1_048_576).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} MB`;
 }
 
-export default async function AdminPrescriptionsPage() {
+export default async function AdminPrescriptionsPage({
+  searchParams,
+}: PageProps<"/admin/duyet-don-thuoc">) {
   const session = await requireSession();
   const canReview = canApprovePrescriptions(session.role);
+  const filter = readFilter(await searchParams, ["q", "trang-thai"]);
   const rows = getPrescriptionRows();
-  const pending = rows.filter((row) => row.status === "cho-duyet");
-  const decided = rows.filter((row) => row.status !== "cho-duyet");
+
+  // Lọc trước rồi mới chia hai nhóm: lọc sau khi chia thì một trong hai thẻ
+  // rỗng mà không nói vì sao.
+  const visible = rows.filter(
+    (row) =>
+      matchesQuery(filter.q, row.orderCode, row.fileName, row.order.customer, row.order.phone) &&
+      (!filter["trang-thai"] || row.status === filter["trang-thai"]),
+  );
+  const pending = visible.filter((row) => row.status === "cho-duyet");
+  const decided = visible.filter((row) => row.status !== "cho-duyet");
+  // Thẻ số phía trên là số của cả hàng đợi, không phải của phần đang lọc.
+  const allPending = rows.filter((row) => row.status === "cho-duyet");
+  const allDecided = rows.filter((row) => row.status !== "cho-duyet");
 
   return (
     <AdminShell activeHref="/admin/duyet-don-thuoc">
@@ -91,11 +107,11 @@ export default async function AdminPrescriptionsPage() {
         <section aria-label="Chỉ số đơn thuốc" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <StatCard
             label="Chờ duyệt"
-            value={`${pending.length} đơn`}
+            value={`${allPending.length} đơn`}
             hint="Phải gọi khách trước khi soạn thuốc"
-            danger={pending.length > 0}
+            danger={allPending.length > 0}
           />
-          <StatCard label="Đã xử lý" value={`${decided.length} đơn`} hint="Trong danh sách mẫu" />
+          <StatCard label="Đã xử lý" value={`${allDecided.length} đơn`} hint="Trong danh sách mẫu" />
           <StatCard
             label="Thời hạn lưu ảnh"
             value="Xoá sau khi đơn hoàn tất"
@@ -130,6 +146,23 @@ export default async function AdminPrescriptionsPage() {
           </Card>
         ) : null}
 
+        <AdminFilterBar
+          action="/admin/duyet-don-thuoc"
+          query={filter.q}
+          placeholder="Mã đơn, tên tệp hoặc tên khách"
+          selects={[
+            {
+              name: "trang-thai",
+              label: "Trạng thái",
+              value: filter["trang-thai"],
+              options: (Object.keys(statusLabel) as PrescriptionStatus[]).map((status) => ({
+                value: status,
+                label: statusLabel[status],
+              })),
+            },
+          ]}
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
             <SectionHeading
@@ -145,12 +178,18 @@ export default async function AdminPrescriptionsPage() {
 
           {pending.length === 0 ? (
             <p className="border-t border-hairline px-4 py-6 text-body-md text-ink-muted">
-              Không còn đơn nào chờ duyệt.
+              {filter.q || filter["trang-thai"]
+                ? "Không có đơn chờ duyệt nào khớp bộ lọc đang chọn."
+                : "Không còn đơn nào chờ duyệt."}
             </p>
           ) : (
             <ul className="border-t border-hairline">
               {pending.map((row) => (
-                <li key={row.orderCode} className="border-b border-divider last:border-b-0">
+                <li
+                  key={row.orderCode}
+                  id={`dt-${row.orderCode}`}
+                  className="scroll-mt-24 border-b border-divider last:border-b-0"
+                >
                   <PrescriptionCard row={row} canReview={canReview} />
                 </li>
               ))}
@@ -160,15 +199,33 @@ export default async function AdminPrescriptionsPage() {
 
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
-            <SectionHeading title="Đã xử lý" />
+            <SectionHeading
+              title={
+                decided.length === allDecided.length
+                  ? "Đã xử lý"
+                  : `${decided.length} / ${allDecided.length} đơn đã xử lý khớp bộ lọc`
+              }
+            />
           </div>
+          {decided.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              {filter.q || filter["trang-thai"]
+                ? "Không có đơn đã xử lý nào khớp bộ lọc đang chọn."
+                : "Chưa có đơn nào được duyệt hoặc từ chối."}
+            </p>
+          ) : (
           <ul className="border-t border-hairline">
             {decided.map((row) => (
-              <li key={row.orderCode} className="border-b border-divider last:border-b-0">
+              <li
+                key={row.orderCode}
+                id={`dt-${row.orderCode}`}
+                className="scroll-mt-24 border-b border-divider last:border-b-0"
+              >
                 <PrescriptionCard row={row} canReview={false} />
               </li>
             ))}
           </ul>
+          )}
         </Card>
 
         <Card className="p-4 md:p-5">

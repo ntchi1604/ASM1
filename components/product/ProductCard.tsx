@@ -2,12 +2,14 @@ import Link from "next/link";
 import { BellRing, ShoppingCart, Stethoscope } from "@/lib/icons";
 import type { Product } from "@/lib/types";
 import { getDefaultUnit } from "@/lib/data/products";
+import { AddToCartForm } from "@/components/cart/AddToCartForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Price } from "@/components/ui/Price";
 import { StockStatus } from "@/components/ui/StockStatus";
 import { ProductImage } from "@/components/product/ProductImage";
+import { WishlistToggle } from "@/components/product/WishlistToggle";
 import { discountPercent } from "@/lib/format";
 
 /**
@@ -34,21 +36,34 @@ export function ProductCard({
 
   return (
     <Card as="article" className="flex h-full flex-col overflow-hidden">
-      <Link href={href} className="focus-ring block">
-        <ProductImage
-          src={product.image}
-          name={product.name}
-          brand={product.brand}
-          priority={priority}
-        />
-      </Link>
+      {/* Tim đè lên góc ảnh: nút hành động thứ hai trong thẻ mà không chiếm
+          thêm một dòng, vì mọi thẻ trong lưới phải giữ đúng chiều cao. */}
+      <div className="relative">
+        <Link href={href} className="focus-ring block">
+          <ProductImage
+            src={product.image}
+            name={product.name}
+            brand={product.brand}
+            priority={priority}
+          />
+        </Link>
+        <WishlistToggle product={product} className="absolute top-2 right-2" />
+        {/* Huy hiệu −% đè góc ảnh như Stitch: giảm giá là thông tin so sánh
+            giữa các thẻ trong lưới, nên nó phải nằm cùng chỗ trên mọi thẻ. */}
+        {off > 0 ? (
+          <span className="pointer-events-none absolute top-2 left-2 rounded-chip bg-promo px-2 py-0.5 text-label-sm font-bold text-white">
+            −{off}%
+          </span>
+        ) : null}
+      </div>
 
       <div className="flex flex-1 flex-col gap-2 border-t border-divider p-3">
+        {/* Luôn giữ hàng cao 24px kể cả khi không có huy hiệu: lưới so sánh
+            theo hàng ngang, tên thuốc lệch nhau một dòng là mắt đọc sai thẻ. */}
         <div className="flex min-h-6 flex-wrap items-center gap-1.5">
           {product.prescriptionRequired ? (
             <Badge tone="prescription">Thuốc kê đơn</Badge>
           ) : null}
-          {off > 0 ? <Badge tone="promo">Giảm {off}%</Badge> : null}
           {product.type === "supplement" ? (
             <Badge tone="supplement">TPBS</Badge>
           ) : null}
@@ -69,6 +84,7 @@ export function ProductCard({
           unit={unit.label}
           originalPrice={unit.originalPrice}
           prescriptionRequired={product.prescriptionRequired}
+          showDiscount={false}
           className="mt-auto pt-1"
         />
 
@@ -91,10 +107,11 @@ export function ProductCard({
             Thông báo khi có hàng
           </Button>
         ) : (
-          <Button variant="solid-trust" fullWidth>
-            <ShoppingCart size={18} aria-hidden />
-            Thêm vào giỏ
-          </Button>
+          <AddToCartForm
+            product={product}
+            fullWidth
+            icon={<ShoppingCart size={18} aria-hidden />}
+          />
         )}
       </div>
     </Card>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { AddToCartForm } from "@/components/cart/AddToCartForm";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Price } from "@/components/ui/Price";
@@ -77,10 +78,10 @@ export function ProductRow({ product }: { product: Product }) {
                 Thông báo khi có hàng
               </Button>
             ) : (
-              <Button variant="solid-trust">
-                <ShoppingCart size={18} aria-hidden />
-                Thêm vào giỏ
-              </Button>
+              <AddToCartForm
+                product={product}
+                icon={<ShoppingCart size={18} aria-hidden />}
+              />
             )}
           </div>
         </div>

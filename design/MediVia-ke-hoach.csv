@@ -1,0 +1,188 @@
+﻿,,,,,,,,,,,,
+CHỨC NĂNG — MediVia,,,,,,,,,,,,
+Website bán thuốc trực tuyến · 9 tính năng AI · nhóm 4 người,,,,,,,,,,,,
+- Công nghệ sử dụng:,"Front-end
+Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS v4",,,,,"Back-end
+Next.js Server Actions + Route Handlers · phiên đăng nhập ký HMAC bằng cookie",,,"Database
+36 bảng + 2 view · PostgreSQL 16
+design/medivia-schema.sql · design/medivia-schema.dbml",,,
+,,,,,,,,,,,,
+Phân quyền,STT,Chức năng,Mô tả,,,,,,Người làm,Khó khăn,Trạng thái,Trong dự án
+Admin,1,Quản lý danh mục,"Danh sách
+• phân trang 15/30/45 · tìm theo tên
+• sắp xếp mọi cột · đổi trạng thái
+• xoá 1/nhiều → thùng rác
+Thùng rác
+• phân trang · tìm · sắp xếp
+• khôi phục 1/nhiều · xoá vĩnh viễn 1/nhiều
+Chi tiết / Thêm / Sửa",,,,,,Chí,,Chưa,—
+,2,Quản lý sản phẩm,"Danh sách
+• phân trang 15/30/45 · tìm theo tên
+• sắp xếp mọi cột · đổi trạng thái
+• xoá 1/nhiều → thùng rác
+Thùng rác
+• phân trang · tìm · sắp xếp
+• khôi phục 1/nhiều · xoá vĩnh viễn 1/nhiều
+Thêm mới / Sửa",,,,,,Chí,"Dự án chỉ có thêm + sửa tồn kho, chưa có sửa giá và thuộc tính.",Một phần,/admin/kho-thuoc
+,3,Quản lý thuộc tính,"Danh sách
+• phân trang 15/30/45 · tìm theo tên · lọc
+• sắp xếp mọi cột · đổi trạng thái
+• xoá 1/nhiều
+Thêm mới / Sửa
+Trang giá trị thuộc tính: tương tự",,,,,,Quân,,Chưa,—
+,4,Quản lý thương hiệu,"Danh sách
+• phân trang 15/30/45 · tìm theo tên
+• sắp xếp mọi cột · đổi trạng thái
+• xoá 1/nhiều
+Thêm mới / Sửa",,,,,,Tùng,,Chưa,—
+,5,Quản lý thẻ,"Danh sách
+• phân trang 15/30/45 · tìm theo tên
+• sắp xếp mọi cột · đổi trạng thái
+• xoá 1/nhiều
+Thêm mới / Sửa",,,,,,Tùng,,Chưa,—
+,6,Quản lý đơn hàng,"Trạng thái: chờ xác nhận → chờ lấy hàng → đang giao → đã giao → đã hoàn thành.
+Nhánh phụ: đã huỷ · hoàn trả.
+1. Chờ xác nhận → Chờ lấy hàng   [Xác nhận]   báo khách đã xác nhận
+2. Chờ lấy hàng → Đang giao   [Giao hàng]   báo khách đang giao
+3. Đang giao → Đã giao   [Xác nhận giao hàng]   chụp ảnh minh chứng · báo khách kèm nút ""đã nhận hàng"" và nút ""hoàn trả""
+4. Đang giao → Hoàn trả   [Hoàn trả]   ghi rõ lý do (sai địa chỉ, khách lừa) · báo khách
+5. Đã giao → Hoàn trả   [Hoàn trả]   ghi rõ lý do (hàng không giống hình)
+Khách bấm hoàn trả khi đã giao → admin xử lý; lý do đúng thì chuyển Đã giao → Hoàn trả kèm lý do.",,,,,,Ánh,Đổi trạng thái đã có; nhánh hoàn trả và thông báo thì chưa.,Một phần,/admin/don-hang
+,7,Quản lý người dùng,"Danh sách
+• phân trang 15/30/45 · tìm theo tên, email, SĐT · lọc
+• sắp xếp mọi cột · đổi trạng thái
+• khoá 1/nhiều
+Danh sách khoá
+• phân trang · tìm · sắp xếp
+• bỏ khoá 1/nhiều
+Thêm mới / Sửa",,,,,,Anh,Cần bảng customers trước; dự án chưa có đăng ký người dùng.,Chưa,—
+,8,Quản lý mã giảm giá,"Danh sách
+• phân trang 15/30/45 · tìm theo tên
+• sắp xếp theo mã, tên, trạng thái, ngày
+• đổi trạng thái · xoá 1/nhiều
+Thêm mới / Sửa",,,,,,Thảo,,Một phần,/admin/uu-dai
+,9,Quản lý đánh giá,"Xem đánh giá: số sao, nhận xét, ảnh, video.",,,,,,Thảo,Chưa có bảng reviews trong dữ liệu chạy.,Chưa,—
+,10,Quản lý bình luận,Xem bình luận · phản hồi · ẩn bình luận.,,,,,,Hiệp,,Chưa,—
+,11,Thống kê,"Dashboard
+• doanh thu theo ngày/tuần · số đơn hoàn tất
+• top 5 bán chạy · sản phẩm sắp hết hàng
+• khách mới theo ngày/tuần
+• lý do đổi/trả phổ biến · điểm đánh giá từng sản phẩm
+Chi tiết
+• doanh thu theo danh mục / sản phẩm / khu vực (ngày, tháng, năm)
+• khách mua nhiều nhất · doanh thu cao nhất · huỷ nhiều nhất
+• thời điểm huỷ / giao nhiều nhất · mặt hàng huỷ nhiều/ít nhất
+• tồn kho từng sản phẩm · tỷ lệ hoàn trả và lý do",,,,,,Huy,Dự án có dashboard cơ bản; phần lớn số liệu chi tiết chưa có nguồn dữ liệu.,Một phần,/admin/phan-tich
+,12,Xác thực tài khoản,"Đăng nhập
+• email · role = 2 là admin
+Quên mật khẩu
+• gửi OTP về email · xác thực OTP rồi cho đổi mật khẩu",,,,,,Anh,Đăng nhập có; quên mật khẩu và OTP chưa có.,Đã xong,/admin/dang-nhap
+Nhân viên,13,Quản lý đơn hàng,"Cùng luồng trạng thái với Admin, chỉ khác người thao tác là nhân viên.
+1. Chờ xác nhận → Chờ lấy hàng   [Xác nhận]
+2. Chờ lấy hàng → Đang giao   [Giao hàng]
+3. Đang giao → Đã giao   [Xác nhận giao hàng]   chụp ảnh minh chứng
+4. Đang giao hoặc Đã giao → Hoàn trả   [Hoàn trả]   ghi rõ lý do
+Mỗi bước đều báo cho khách.",,,,,,,,Chưa,/admin/don-hang
+,14,Quản lý bình luận,Xem · phản hồi · ẩn bình luận.,,,,,,Anh,,Chưa,—
+,15,Quản lý đánh giá,"Xem đánh giá: số sao, ảnh, video, nhận xét.",,,,,,Anh,,Chưa,—
+,16,Chatbox,"Chat theo phiên, không lưu lịch sử.
+Trả lời khách bằng text, ảnh, video, tệp.",,,,,,Anh,"Dự án thay bằng chatbot AI, không có nhân viên trực.",Chưa,/ai/chatbot
+,17,Thống kê,"Đơn theo ngày: bao nhiêu đơn, đã xử lý bao nhiêu, chi tiết đơn.
+Thống kê sản phẩm.",,,,,,,,Chưa,/admin/phan-tich
+,18,Quản lý khách hàng,Thêm mới khách hàng.,,,,,,,,Chưa,—
+,19,Xác thực tài khoản,"Đăng nhập email · role = 1 là nhân viên.
+Quên mật khẩu: OTP qua email.",,,,,,Quân,,Chưa,/admin/dang-nhap
+Người dùng,20,Xác thực tài khoản,"Đăng ký
+• gửi email xác thực tài khoản
+Đăng nhập
+• email · role = 0 là khách hàng
+• Google / Facebook (tùy chọn)
+Quên mật khẩu
+• OTP qua email rồi đổi mật khẩu",,,,,,Ánh,Dự án chưa có tài khoản khách; trang /tai-khoan chỉ hiện hồ sơ một khách mẫu.,Chưa,—
+,21,Lịch sử mua hàng,"Xem đơn theo trạng thái.
+1. Chờ xác nhận → Đã huỷ   [Khách huỷ]   báo admin và nhân viên
+2. Đã giao
+• khách bấm ""đã nhận hàng"" → Đã hoàn thành
+• khách bấm ""hoàn trả"" (chưa nhận được hàng, hàng đểu, hàng vỡ) → chờ admin xử lý
+• quá 3 ngày không bấm → tự động Đã hoàn thành
+3. Đánh giá và nhận xét khi đơn đã hoàn thành.",,,,,,Ánh,"Dự án mới có tra cứu theo mã đơn, chưa có lịch sử.",Chưa,/tra-cuu-don-hang
+,22,Thông tin tài khoản,"Sửa thông tin cơ bản.
+Nhiều địa chỉ và chọn địa chỉ mặc định.
+Đổi mật khẩu.",,,,,,Bảo,"Trang hiện chỉ đọc, chưa có form sửa.",Một phần,/tai-khoan
+,23,Kho voucher,Xem và dùng voucher được tặng.,,,,,,Bảo,,Chưa,—
+,24,Trang chủ,"Tất cả danh mục cha.
+Trending Products.
+Bán chạy hôm nay (sản phẩm thường và biến thể).
+Top danh mục nổi bật trong tuần.
+Sản phẩm do AI gợi ý (tùy chọn).
+Bán chạy nhất.",,,,,,Tùng,,Đã xong,/
+,25,Danh sách danh mục,"Danh sách sản phẩm theo danh mục, có phân trang.
+Tìm theo tên.
+Lọc theo hãng, loại danh mục, giá, thuộc tính.
+Sắp xếp theo giá, mới, bán chạy, xem nhiều.",,,,,,Thảo,4/12 danh mục chưa có sản phẩm; trang trống vẫn dẫn sang hỏi dược sĩ AI.,Đã xong,/danh-muc/[slug]
+,26,Chi tiết sản phẩm,Thông tin chi tiết sản phẩm thường và biến thể.,,,,,,Hiệp,,Đã xong,/thuoc/[slug]
+,27,So sánh,So sánh sản phẩm theo thuộc tính.,,,,,,Mạnh,,Chưa,—
+,28,Danh sách yêu thích,Thêm và bỏ thích sản phẩm.,,,,,,Thảo,,Chưa,—
+,29,Bình luận,"Thêm, sửa, xoá bình luận của mình.",,,,,,Hiệp,,Chưa,—
+,30,Chat với nhân viên,"Chat theo phiên, không lưu lịch sử.
+Gửi text, ảnh, video, tệp.",,,,,,Bảo,Dự án thay bằng chatbot AI.,Chưa,/ai/chatbot
+,31,Giỏ hàng,"Thêm sản phẩm, sửa số lượng, xoá khỏi giỏ.
+Cảnh báo tương tác thuốc ngay trong giỏ.",,,,,,Thảo,Giỏ không được lưu; tải lại là mất.,Đã xong,/gio-hang
+,32,Thanh toán,"Sửa thông tin khi thanh toán.
+Thanh toán khi nhận hàng.
+Ví điện tử: Momo, VNPay, PayPal.",,,,,,Ánh,"Thanh toán mô phỏng, chưa nối cổng thật.",Một phần,/thanh-toan
+,,,,,,,,,,,,
+CHÍNH — 9 TÍNH NĂNG AI (điểm khác biệt của dự án),,,,,,,,,,,,
+Nhóm,STT,Tính năng,Mô tả,,,,,,Người làm,Khó khăn,Trạng thái,Trong dự án
+AI,1,Tư vấn thuốc theo triệu chứng,"Chọn nhiều triệu chứng → AI gom thành nhóm bệnh → gợi ý thuốc kèm lý do.
+Có nhánh cờ đỏ: triệu chứng nguy hiểm thì chặn, không gợi ý thuốc.",,,,,,,"Nhánh cờ đỏ khó nhất. Lỗi ở đây không ném ngoại lệ, chỉ trả lời sai.",Đã xong,/ai/tu-van
+,2,Tìm thuốc bằng AI,"Gõ câu tự nhiên (""thuốc ho cho trẻ không gây buồn ngủ"") → AI tách thành bộ lọc → trả danh sách.",,,,,,,Dữ liệu mẫu 24 sản phẩm nên dễ tách; lên dữ liệu thật phải làm lại phần khớp.,Đã xong,/ai/tim-kiem
+,3,Chatbot dược sĩ AI,"Hỏi đáp nhiều lượt, có nút chuyển sang dược sĩ người thật.",,,,,,,"Câu hỏi ngoài phạm vi phải chuyển sang người thật, không tự trả lời.",Đã xong,/ai/chatbot
+,4,Gợi ý sản phẩm,"Trang chủ, chi tiết thuốc, danh mục.
+Mỗi gợi ý BẮT BUỘC kèm lý do, ví dụ ""Cân bằng lợi khuẩn khi dùng kháng sinh"".",,,,,,,Không có lý do thì đây chỉ là quảng cáo đội lốt AI.,Đã xong,Trang chủ · chi tiết · danh mục
+,5,Nhận diện thuốc bằng ảnh,Tải ảnh vỉ thuốc → AI trả về các ứng viên kèm độ tin cậy.,,,,,,,"Phải hiện độ tin cậy, không được trả một kết quả nghe như chắc chắn.",Đã xong,/ai/nhan-dien
+,6,Tóm tắt thông tin thuốc,"Rút gọn tờ hướng dẫn thành 3 nhóm, luôn có liên kết về nguồn gốc.",,,,,,,Tóm tắt sai liều tệ hơn không có khối tóm tắt.,Đã xong,Trang chi tiết thuốc
+,7,Cảnh báo tương tác thuốc,"Đối chiếu hoạt chất, phân 3 mức: nghiêm trọng / trung bình / nhẹ.",,,,,,,Phải khớp theo hoạt chất chứ không theo tên biệt dược.,Đã xong,/ai/tuong-tac · trong giỏ
+,8,Phân tích doanh số,"AI đọc số liệu bán hàng, viết nhận xét và phát hiện bất thường.",,,,,,,Số liệu tính sẵn ở tầng dữ liệu để biểu đồ và nhận xét AI không nói hai số khác nhau.,Đã xong,/admin/phan-tich
+,9,Tìm thuốc bằng giọng nói,Web Speech API chuyển giọng nói thành truy vấn tìm kiếm.,,,,,,,Chỉ chạy trên Chrome; phải có ô nhập chữ làm đường lui.,Đã xong,/ai/giong-noi
+,,,,,,,,,,,,
+CHỨC NĂNG PHÁT SINH NGOÀI ĐỀ CƯƠNG,,,,,,,,,,,,
+Nhóm,STT,Chức năng,Mô tả,,,,,,Người làm,Khó khăn,Trạng thái,Trong dự án
+,1,Duyệt đơn thuốc,Hàng kê đơn chỉ bán được sau khi dược sĩ duyệt ảnh đơn. Hàng chờ quá 24h tự huỷ.,,,,,,,"Đây là ràng buộc pháp lý, không phải tính năng thêm.",Đã xong,/admin/duyet-don-thuoc
+,2,Cảnh báo an toàn,"Danh sách cờ đỏ do DƯỢC SĨ cập nhật, không do lập trình viên. Đây là dữ liệu y khoa.",,,,,,,,Đã xong,/admin
+,3,Quản lý nhà thuốc,"Thêm, sửa, xoá chi nhánh; giờ mở cửa; toạ độ.",,,,,,,,Đã xong,/admin/nha-thuoc
+,4,Quản lý bài viết & trang chữ,"Bài Góc sức khoẻ và các trang nội dung.
+Đường dẫn KHÔNG sửa được sau khi tạo — đổi là mọi liên kết đã trỏ tới nó thành liên kết chết.",,,,,,,,Đã xong,/admin/bai-viet · /admin/trang
+,5,Hệ thống nhà thuốc,Bản đồ và danh sách chi nhánh.,,,,,,,,Đã xong,/he-thong-nha-thuoc
+,6,Góc sức khoẻ,Danh sách và chi tiết bài viết sức khoẻ.,,,,,,,,Đã xong,/goc-suc-khoe
+,7,Tra cứu đơn hàng,"Tra bằng mã đơn, KHÔNG bằng số điện thoại — SĐT là dữ liệu cá nhân, không đặt trong URL.",,,,,,,,Đã xong,/tra-cuu-don-hang
+,8,Tải đơn thuốc,Hướng dẫn gửi đơn. Cố ý KHÔNG có ô tải tệp vì chưa có máy chủ nhận.,,,,,,,,Đã xong,/tai-don-thuoc
+,,,,,,,,,,,,
+CƠ SỞ DỮ LIỆU — 36 bảng + 2 view · PostgreSQL 16 · design/medivia-schema.sql,,,,,,,,,,,,
+Nhóm,STT,Tên nhóm,Bảng,,,,,,Ghi chú,,,Số lượng
+A,1,Danh mục hàng hoá,"categories, products, product_units, product_details, active_ingredients,
+product_ingredients, ingredient_aliases, interaction_rules, reviews,
+pharmacies, stock_levels, combo_suggestions",,,,,,"12 bảng + view combo_suggestions_sellable.
+Giá thuộc về ĐƠN VỊ BÁN, không thuộc sản phẩm — ""1 Hapacol 650"" và ""1 vỉ 10 viên"" là hai thứ khác nhau, giá khác nhau.
+Hoạt chất là thực thể riêng: không có nó thì luật Warfarin × Aspirin không bao giờ khớp, cảnh báo xuất huyết im lặng mất.",,,12 bảng + 1 view
+B,2,Bán hàng,"customers, customer_addresses, carts, cart_items, coupons, delivery_methods,
+payment_methods, orders, order_items, shipments, prescriptions",,,,,,"11 bảng.
+Bảng prescriptions tách riêng vì ảnh đơn thuốc là dữ liệu y tế — ba lời hứa bảo mật cài ở tầng lược đồ, không chỉ ở tầng giao diện.",,,11 bảng
+C,3,AI,"ai_sessions, ai_tool_events, ai_consult_results, ai_search_results,
+ai_identify_results, ai_messages, red_flags, pharmacist_handoffs",,,,,,"8 bảng.
+Mọi bảng kết quả AI cùng một hình dạng để thay mock bằng mô hình thật không phải sửa giao diện.
+red_flags do dược sĩ cập nhật; pharmacist_handoffs ghi các lượt phải chuyển sang người thật.",,,8 bảng
+D,4,Nội dung & tổng hợp,"static_pages, page_sections, daily_sales, category_sales, product_sales",,,,,,"5 bảng + view stock_forecast.
+Bảng tổng hợp tính sẵn để biểu đồ và nhận xét AI không thể nói hai con số khác nhau.",,,5 bảng + 1 view
+—,5,Tìm kiếm tiếng Việt,(không phải bảng),,,,,,"Cột search_text sinh tự động + GIN index, bỏ dấu tiếng Việt để ""thuoc ho"" khớp ""thuốc ho"".",,,cột sinh + GIN
+!,6,Còn thiếu: audit_log,(chưa có),,,,,,Mọi thao tác ghi đều biết ai làm nhưng KHÔNG lưu lại. Với dữ liệu y tế đây là thiếu sót thật — việc đầu tiên khi dựng cơ sở dữ liệu.,,,thiếu
+,,,,,,,,,,,,
+QUY TRÌNH HOÀN TRẢ TIỀN,,,,,,,,,,,,
+B1,"Tiếp nhận yêu cầu trả hàng và hoàn tiền (qua email, điện thoại hoặc chat): mã đơn hàng, bằng chứng, biên lai chuyển khoản, lý do trả hàng, video bốc hàng.",,,,,,,,,,,
+B2,"Xác minh yêu cầu, kiểm tra thông tin.
+Không đúng → báo lại khách. Đúng → sang B3.",,,,,,,,,,,
+B3,"Hướng dẫn trả hàng: cấp mã chuyển hàng cho khách dán vào, cung cấp video đóng gói hàng.",,,,,,,,,,,
+B4,"Kiểm tra hàng khi nhận được.
+Không đúng → báo lại khách kèm bằng chứng. Đúng → sang B5.",,,,,,,,,,,
+B5,Hướng dẫn nhận tiền: xin số tài khoản và chuyển lại cho khách.,,,,,,,,,,,
+B6,Thông báo cho khách hàng.,,,,,,,,,,,

@@ -12,6 +12,7 @@ export function Price({
   originalPrice,
   prescriptionRequired = false,
   size = "md",
+  showDiscount = true,
   className,
 }: {
   amount: number;
@@ -19,6 +20,11 @@ export function Price({
   originalPrice?: number;
   prescriptionRequired?: boolean;
   size?: "md" | "lg";
+  /**
+   * Thẻ sản phẩm đặt huy hiệu −% đè lên ảnh nên tắt chip ở đây; chỗ khác
+   * (trang chi tiết, giỏ hàng) không có ảnh để đè thì vẫn cần chip.
+   */
+  showDiscount?: boolean;
   className?: string;
 }) {
   const off = originalPrice ? discountPercent(amount, originalPrice) : 0;
@@ -40,9 +46,11 @@ export function Price({
             <span className="font-mono text-body-sm text-ink-subtle line-through tabular-nums">
               {formatVnd(originalPrice)}
             </span>
-            <span className="rounded-chip bg-promo-wash px-2 py-0.5 text-label-sm text-promo-text">
-              −{off}%
-            </span>
+            {showDiscount ? (
+              <span className="rounded-chip bg-promo-wash px-2 py-0.5 text-label-sm text-promo-text">
+                −{off}%
+              </span>
+            ) : null}
           </>
         ) : null}
       </div>

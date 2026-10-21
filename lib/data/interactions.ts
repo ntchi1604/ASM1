@@ -8,7 +8,7 @@ import { products } from "@/lib/data/products";
  * uống hai lần cùng một thuốc, vì hai cái tên chẳng liên quan gì nhau. Khoá
  * theo hoạt chất thì cảnh báo vẫn bắt được, kể cả với thuốc mới thêm vào sau.
  */
-const interactionRules: Interaction[] = [
+export const interactionRules: Interaction[] = [
   {
     severity: "nghiem-trong",
     drugA: "Paracetamol",
@@ -86,7 +86,7 @@ const interactionRules: Interaction[] = [
  *
  * Khoá viết thường không dấu để so không phụ thuộc cách viết hoa.
  */
-const ingredientAliases: Record<string, string> = {
+export const ingredientAliases: Record<string, string> = {
   "acid acetylsalicylic": "Aspirin",
   aspirin: "Aspirin",
   "warfarin natri": "Warfarin",

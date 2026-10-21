@@ -28,6 +28,28 @@ export type ConsultResult = {
 };
 
 /**
+ * Ba dấu hiệu chung, luôn đứng đầu danh sách cờ đỏ của mọi nhánh gợi ý.
+ *
+ * Xuất ra ngoài để `design/seed-postgres.mjs` nạp được vào bảng `red_flags`:
+ * danh sách này là DỮ LIỆU Y KHOA, và lược đồ đặt nó trong cơ sở dữ liệu chứ
+ * không trong mã — dược sĩ cập nhật được mà không phải deploy lại.
+ */
+export const commonFlags: RedFlag[] = [
+  {
+    label: "Sốt trên 39°C không hạ sau 2 ngày dùng thuốc",
+    action: "Đến cơ sở y tế để tìm nguyên nhân, không tăng liều thuốc hạ sốt.",
+  },
+  {
+    label: "Khó thở, tức ngực, lơ mơ hoặc co giật",
+    action: "Gọi 115 hoặc đến khoa cấp cứu gần nhất ngay.",
+  },
+  {
+    label: "Trẻ dưới 3 tháng tuổi bị sốt",
+    action: "Đưa trẻ đi khám ngay, không tự dùng thuốc hạ sốt tại nhà.",
+  },
+];
+
+/**
  * Tính năng 1 — Tư vấn triệu chứng.
  *
  * Nguyên tắc: AI mô tả lại triệu chứng và gợi ý NHÓM thuốc, tuyệt đối không
@@ -43,21 +65,6 @@ export async function consultSymptoms(query: string): Promise<ConsultResult> {
 
   const pick = (...ids: string[]) =>
     ids.map(getProductById).filter((item): item is Product => Boolean(item));
-
-  const commonFlags: RedFlag[] = [
-    {
-      label: "Sốt trên 39°C không hạ sau 2 ngày dùng thuốc",
-      action: "Đến cơ sở y tế để tìm nguyên nhân, không tăng liều thuốc hạ sốt.",
-    },
-    {
-      label: "Khó thở, tức ngực, lơ mơ hoặc co giật",
-      action: "Gọi 115 hoặc đến khoa cấp cứu gần nhất ngay.",
-    },
-    {
-      label: "Trẻ dưới 3 tháng tuổi bị sốt",
-      action: "Đưa trẻ đi khám ngay, không tự dùng thuốc hạ sốt tại nhà.",
-    },
-  ];
 
   /*
     Cờ đỏ chạy TRƯỚC mọi nhánh gợi ý, và trả về danh sách thuốc RỖNG.

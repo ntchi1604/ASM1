@@ -1,0 +1,670 @@
+// MediVia — lược đồ cơ sở dữ liệu
+// PostgreSQL 16 · 39 bảng + 2 view
+// Dán vào https://dbdiagram.io/d
+//
+// Bản dịch của design/medivia-schema.sql. DBML không có CHECK, không có partial
+// index, không có cột sinh — những thứ đó nằm trong Note, còn tệp .sql mới là
+// bản chạy được.
+
+// ============================================================
+// KIỂU LIỆT KÊ
+// ============================================================
+
+Enum product_type {
+  drug
+  supplement
+  cosmetic
+  device
+}
+
+Enum dosage_form {
+  "vien-nen"
+  "vien-sui"
+  siro
+  "goi-bot"
+  "xit-nho"
+  "vien-ngam"
+  "ong-uong"
+  "dung-dich"
+}
+
+Enum audience {
+  "nguoi-lon"
+  "tre-em"
+  "nguoi-cao-tuoi"
+}
+
+Enum unit_label {
+  "Hộp"
+  "Vỉ"
+  "Viên"
+  "Tuýp"
+  "Lọ"
+  "Chai"
+  "Gói"
+}
+
+Enum severity {
+  "nghiem-trong"
+  "trung-binh"
+  nhe
+}
+
+Enum combo_scope {
+  product
+  category
+}
+
+Enum coupon_kind {
+  amount
+  freeship
+}
+
+Enum order_status {
+  "cho-xac-nhan"
+  "da-xac-nhan"
+  "dang-giao"
+  "da-giao"
+  "hoan-thanh"
+  "hoan-tra"
+  "da-huy"
+}
+
+Enum return_decision {
+  "da-chap-nhan"
+  "tu-choi"
+}
+
+Enum prescription_status {
+  "cho-duyet"
+  "da-duyet"
+  "tu-choi"
+}
+
+Enum ai_tool {
+  "tu-van"
+  "tim-kiem"
+  chatbot
+  "nhan-dien"
+  "tuong-tac"
+  "giong-noi"
+}
+
+Enum handoff_reason {
+  "lieu-tre-em"
+  "thai-cho-con-bu"
+  "thuoc-ke-don"
+  "dau-hieu-nghi-nang"
+}
+
+Enum handoff_status {
+  "cho-tiep-nhan"
+  "dang-xu-ly"
+  xong
+}
+
+Enum admin_role {
+  "duoc-si"
+  "ke-toan"
+}
+
+// ============================================================
+// NHÓM A — DANH MỤC HÀNG HOÁ
+// ============================================================
+
+Table categories {
+  slug                 varchar(64) [pk]
+  name                 varchar(128) [not null]
+  short_name           varchar(64) [not null]
+  icon                 varchar(32) [not null, note: 'Khoá icon (thermometer, pill…), tra bảng trong lib/data/categories.ts.']
+  description          text [not null]
+  ai_hint_message      text [note: 'Gợi ý AI ở dải tím trang danh mục. Để trống thì khối tự ẩn.']
+  ai_hint_action_label varchar(64)
+  ai_hint_action_href  varchar(128) [note: 'CHECK: đi cùng action_label, và phải LIKE /danh-muc/%']
+  sort_order           smallint [not null, default: 0]
+
+  Note: 'CHECK hint_action_complete — label và href hoặc cùng có hoặc cùng NULL.'
+}
+
+Table products {
+  id                    varchar(64) [pk]
+  slug                  varchar(128) [not null, unique, note: 'KHÁC id: augmentin-625 (id) vs augmentin-625mg (slug). Mọi bảng khác trỏ product_id; mọi đường dẫn công khai dùng slug.']
+  name                  varchar(255) [not null]
+  brand                 varchar(128) [not null]
+  origin                varchar(64) [not null]
+  category_slug         varchar(64) [not null]
+  type                  product_type [not null]
+  dosage_form           dosage_form [not null]
+  audiences             audience[] [not null, default: '{}']
+  prescription_required boolean [not null, default: false, note: 'Cột quan trọng nhất bảng: true ⇒ mọi nơi hiển thị phải bỏ nút thêm giỏ.']
+  strength              varchar(64)
+  image_url             varchar(255)
+  short_uses            text [not null]
+  rating_score          numeric(2,1) [note: 'CHECK 0..5. Đi thành cặp với rating_count hoặc cùng NULL.']
+  rating_count          integer [note: 'CHECK >= 0']
+  restock_date          date [note: 'Ngày dự kiến có hàng lại. Chỉ có nghĩa khi tổng tồn bằng 0.']
+  search_text           text [note: 'Cột SINH: medivia_unaccent(name || brand || short_uses). Có GIN index to_tsvector(simple).']
+
+  Note: '''CHECK only_drug_needs_prescription — thiết bị y tế và dược mỹ phẩm không kê đơn.
+CHECK rating_is_a_pair — có điểm mà không có lượt đánh giá là vô nghĩa.
+Index: products_category_idx (category_slug); products_rx_idx partial WHERE prescription_required.'''
+}
+
+Table product_units {
+  id             bigserial [pk]
+  product_id     varchar(64) [not null, ref: > products.id]
+  unit_label     unit_label [not null]
+  price          integer [not null, note: 'CHECK >= 0']
+  original_price integer [note: 'CHECK >= price']
+  packaging      varchar(64)
+
+  indexes {
+    (product_id, unit_label) [unique]
+  }
+
+  Note: 'Giá thuộc về ĐƠN VỊ BÁN, không thuộc về sản phẩm.'
+}
+
+Table product_details {
+  product_id                varchar(64) [pk, ref: - products.id]
+  registration_number       varchar(32) [not null]
+  manufacturer              varchar(255) [not null]
+  shelf_life                varchar(128) [not null]
+  therapeutic_group         varchar(128) [not null]
+  uses                      text[] [not null, default: '{}']
+  dosage                    text[] [not null, default: '{}']
+  cautions                  text[] [not null, default: '{}']
+  side_effects              text [not null]
+  storage                   text [not null]
+  manufacturer_source_label varchar(255) [not null]
+  quick_questions           text[] [not null, default: '{}']
+
+  Note: '1–1 TUỲ CHỌN với products — cố ý thiếu 18/24 sản phẩm. Trang chi tiết vẫn chạy, chỉ bỏ khối tóm tắt AI. Khối tóm tắt sai liều tệ hơn khối vắng mặt.'
+}
+
+Table active_ingredients {
+  id   serial [pk]
+  name varchar(128) [not null, unique]
+
+  Note: 'Hoạt chất là THỰC THỂ RIÊNG, không phải cột chuỗi. Điều kiện để cảnh báo tương tác chạy đúng: người mua Hapacol rồi mua Panadol không nghĩ mình uống hai lần cùng một thuốc.'
+}
+
+Table product_ingredients {
+  product_id    varchar(64) [ref: > products.id]
+  ingredient_id integer [ref: > active_ingredients.id]
+
+  indexes {
+    (product_id, ingredient_id) [pk]
+    ingredient_id [name: 'product_ingredients_ingredient_idx']
+  }
+}
+
+Table ingredient_aliases {
+  alias         varchar(128) [pk, note: 'viết thường, không dấu']
+  ingredient_id integer [not null, ref: > active_ingredients.id]
+
+  Note: 'Nhãn thuốc Việt Nam ghi tên INN (Acid acetylsalicylic), luật tương tác và người dùng gọi tên thông dụng (Aspirin). Không có bảng này thì Aspirin 81 không khớp luật Warfarin × Aspirin — cảnh báo xuất huyết im lặng mất.'
+}
+
+Table interaction_rules {
+  id              serial [pk]
+  severity        severity [not null]
+  ingredient_a_id integer [not null, ref: > active_ingredients.id]
+  ingredient_b_id integer [not null, ref: > active_ingredients.id]
+  mechanism       text [not null]
+  advice          text [not null]
+
+  Note: 'UNIQUE (ingredient_a_id, ingredient_b_id) + CHECK a <= b. Bắt buộc ở tầng CSDL: thiếu nó thì bảng có cả (Warfarin, Aspirin) lẫn (Aspirin, Warfarin) và mỗi cặp bị cảnh báo hai lần.'
+}
+
+Table reviews {
+  id                varchar(64) [pk]
+  product_id        varchar(64) [not null, ref: > products.id]
+  author            varchar(128) [not null]
+  initials          varchar(4) [not null]
+  score             smallint [not null, note: 'CHECK 1..5']
+  body              text [not null]
+  created_at        date [not null]
+  verified_purchase boolean [not null, default: false]
+  photos            text[] [not null, default: '{}', note: 'Tên tệp; đuôi tệp là Content-Type lúc phục vụ. CHECK cardinality <= 3.']
+  video             text [note: 'Tên tệp .mp4 hoặc .webm, NULL nếu không có']
+  order_code        varchar(16) [note: 'Đơn đã giao dùng để xác thực "đã mua tại MediVia". NULL với đánh giá mẫu.']
+  hidden            boolean [not null, default: false, note: 'Quản trị ẩn khỏi trang sản phẩm. Ẩn chứ KHÔNG xoá.']
+
+  indexes {
+    (product_id, created_at) [name: 'reviews_product_idx']
+  }
+}
+
+// ON DELETE SET NULL — xoá một đơn không được làm biến mất đánh giá của khách.
+Ref: reviews.order_code > orders.code
+
+Table pharmacies {
+  id              serial [pk]
+  name            varchar(128) [not null]
+  address         varchar(255) [not null]
+  province        varchar(128) [not null]
+  district        varchar(128) [not null]
+  latitude        numeric(9,6) [not null]
+  longitude       numeric(9,6) [not null]
+  opening_hours   varchar(128) [not null]
+  phone           varchar(32) [not null, note: 'In ở danh sách nhà thuốc để khách gọi trước khi tới.']
+  is_pickup_point boolean [not null, default: false]
+}
+
+Table stock_levels {
+  product_id  varchar(64) [ref: > products.id]
+  pharmacy_id integer [ref: > pharmacies.id]
+  quantity    integer [not null, note: 'CHECK >= 0']
+
+  indexes {
+    (product_id, pharmacy_id) [pk]
+    pharmacy_id [name: 'stock_levels_pharmacy_idx']
+  }
+
+  Note: 'Tồn kho tách theo từng nhà thuốc: "còn 3 nhà thuốc gần đây có hàng" không trả lời được bằng một con số tổng.'
+}
+
+Table combo_suggestions {
+  id                   bigserial [pk]
+  scope                combo_scope [not null]
+  scope_id             varchar(64) [not null, note: 'product_id hoặc category_slug tuỳ scope. Không đặt khoá ngoại được vì trỏ tới hai bảng khác nhau.']
+  basis                text [not null, note: 'Câu giải thích căn cứ của CẢ khối.']
+  suggested_product_id varchar(64) [not null, ref: > products.id]
+  reason               varchar(255) [not null, note: 'NOT NULL có chủ ý: danh sách sản phẩm không kèm lý do chỉ là quảng cáo.']
+  sort_order           smallint [not null, default: 0]
+
+  indexes {
+    (scope, scope_id, suggested_product_id) [unique]
+    (scope, scope_id, sort_order) [name: 'combo_suggestions_scope_idx']
+  }
+
+  Note: 'Gợi ý "Thường được mua cùng" — tính năng AI #4.'
+}
+
+// ============================================================
+// NHÓM B — BÁN HÀNG
+// ============================================================
+
+Table customers {
+  id         uuid [pk, default: `gen_random_uuid()`]
+  phone      varchar(16) [not null, unique, note: 'Khoá nhận diện chính, không phải email: người mua thuốc thường không có email, và tra cứu đơn hàng tra bằng số điện thoại.']
+  full_name  varchar(128) [not null]
+  email      varchar(255)
+  password_hash text [not null, note: 'scrypt$<salt>$<hash> — KHÔNG lưu chữ thô.']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table admin_users {
+  username      varchar(64) [pk]
+  password_hash text [not null, note: 'Cùng định dạng scrypt$<salt>$<hash> với customers.password_hash.']
+  full_name     varchar(128) [not null]
+  role          admin_role [not null, note: 'Chỉ duoc-si được duyệt đơn thuốc — đơn kê đơn phải có người có chứng chỉ hành nghề đứng tên.']
+  title         varchar(128) [not null]
+  active        boolean [not null, default: true]
+  created_at    timestamptz [not null, default: `now()`]
+
+  indexes {
+    role [name: 'admin_users_role_idx — partial WHERE active']
+  }
+}
+
+Table customer_addresses {
+  id          bigserial [pk]
+  customer_id uuid [not null, ref: > customers.id]
+  province    varchar(128) [not null]
+  district    varchar(128) [not null]
+  ward        varchar(128) [not null]
+  street      varchar(255) [not null]
+  is_default  boolean [not null, default: false]
+
+  indexes {
+    customer_id [name: 'customer_addresses_customer_idx']
+  }
+}
+
+Table carts {
+  id          uuid [pk, default: `gen_random_uuid()`]
+  customer_id uuid [ref: > customers.id]
+  created_at  timestamptz [not null, default: `now()`]
+}
+
+Table cart_items {
+  cart_id         uuid [ref: > carts.id]
+  product_unit_id bigint [ref: > product_units.id]
+  quantity        integer [not null, note: 'CHECK > 0']
+
+  indexes {
+    (cart_id, product_unit_id) [pk]
+  }
+
+  Note: 'Dòng giỏ trỏ tới ĐƠN VỊ BÁN, không trỏ tới sản phẩm: khách chọn "2 hộp" chứ không chọn "2 Hapacol 650", và giá hai thứ đó khác nhau.'
+}
+
+Table coupons {
+  code         varchar(32) [pk]
+  kind         coupon_kind [not null]
+  amount       integer [note: 'CHECK > 0. Chỉ có khi kind = amount.']
+  min_subtotal integer [not null, note: 'CHECK >= 0. Điều kiện áp dụng là MỘT CON SỐ, không phải câu chữ — nếu chỉ nằm trong mô tả thì mã vẫn áp được cho đơn chưa đủ điều kiện.']
+  description  varchar(255) [not null]
+  active       boolean [not null, default: true]
+  start_at     date [note: 'Cửa sổ hiệu lực. Trống = không giới hạn. date chứ không timestamptz: mã mở 0h giờ Việt Nam, không phải 0h UTC.']
+  end_at       date [note: 'Tính CẢ ngày này.']
+
+  Note: '''CHECK amount_matches_kind — amount chỉ có khi kind=amount, và phải NULL khi kind=freeship.
+CHECK window_ordered — start_at <= end_at khi cả hai có.'''
+}
+
+Table delivery_methods {
+  id     varchar(32) [pk, note: 'nhanh | tieu-chuan | nhan-tai-nha-thuoc']
+  name   varchar(128) [not null]
+  fee    integer [not null, note: 'CHECK >= 0']
+  active boolean [not null, default: true]
+}
+
+Table payment_methods {
+  id     varchar(32) [pk, note: 'cod | momo | zalopay | vnpay | the']
+  name   varchar(128) [not null]
+  note   varchar(255)
+  active boolean [not null, default: true]
+}
+
+Table orders {
+  id                    uuid [pk, default: `gen_random_uuid()`]
+  code                  varchar(16) [not null, unique, note: 'MV + DDMM + 4 số']
+  customer_id           uuid [ref: > customers.id]
+  status                order_status [not null, default: 'cho-xac-nhan']
+  original_subtotal     integer [not null, note: 'CHECK >= 0']
+  subtotal              integer [not null, note: 'CHECK >= 0']
+  product_discount      integer [not null, default: 0, note: 'CHECK >= 0']
+  coupon_code           varchar(32) [ref: > coupons.code]
+  coupon_discount       integer [not null, default: 0, note: 'CHECK >= 0']
+  shipping_fee          integer [not null, default: 0, note: 'CHECK >= 0']
+  total                 integer [not null, note: 'CHECK >= 0']
+  delivery_method_id    varchar(32) [not null, ref: > delivery_methods.id]
+  payment_method_id     varchar(32) [not null, ref: > payment_methods.id]
+  requires_prescription boolean [not null, default: false, note: 'Suy ra từ các dòng hàng, nhưng chốt lại ở đây để tra nhanh hàng đợi duyệt.']
+  note                  text
+  email                 varchar(255) [note: 'Để gửi xác nhận đơn.']
+  address               text [note: 'BẢN CHỤP địa chỉ lúc đặt, không phải khoá tới customer_addresses: sửa sổ địa chỉ sau này không được viết lại đơn cũ.']
+  company_name          varchar(255)
+  tax_code              varchar(32)
+  created_at            timestamptz [not null, default: `now()`]
+  delivered_at          timestamptz
+  return_reason         text
+  return_note           text
+  return_requested_at   timestamptz
+  return_decision       return_decision
+  return_decided_at     timestamptz
+  note: 'CHECK: status <> hoan-tra OR return_reason IS NOT NULL'
+
+  indexes {
+    code [name: 'orders_code_idx']
+    (customer_id, created_at) [name: 'orders_customer_idx']
+    status [name: 'orders_rx_queue_idx — partial WHERE requires_prescription']
+  }
+}
+
+Table order_items {
+  id                  bigserial [pk]
+  order_id            uuid [not null, ref: > orders.id]
+  product_id          varchar(64) [not null, ref: > products.id]
+  unit_label          unit_label [not null]
+  quantity            integer [not null, note: 'CHECK > 0']
+  unit_price          integer [not null, note: 'CHECK >= 0. Ảnh chụp giá tại thời điểm mua — đọc lại từ product_units thì lần đổi giá sau sẽ viết lại toàn bộ hoá đơn cũ.']
+  original_unit_price integer [note: 'CHECK >= unit_price']
+  line_total          integer [not null, note: 'CHECK >= 0, và CHECK line_total = unit_price * quantity']
+
+  indexes {
+    order_id [name: 'order_items_order_idx']
+  }
+}
+
+Table shipments {
+  order_id           uuid [pk, ref: - orders.id]
+  delivery_method_id varchar(32) [not null, ref: > delivery_methods.id]
+  pharmacy_id        integer [ref: > pharmacies.id]
+  pickup_code        varchar(16)
+  pickup_expires_at  timestamptz
+
+  Note: '''CHECK pickup_fields_together — có nhà thuốc nhận hàng thì phải có mã nhận và hạn giữ hàng, và ngược lại.
+CHECK pickup_needs_pickup_method — pharmacy_id chỉ có khi delivery_method_id = nhan-tai-nha-thuoc.'''
+}
+
+Table prescriptions {
+  id            uuid [pk, default: `gen_random_uuid()`]
+  order_id      uuid [not null, ref: - orders.id]
+  storage_key   varchar(255) [not null, note: 'Khoá tới kho lưu trữ, KHÔNG phải URL công khai ai cũng đoán được.']
+  mime_type     varchar(64) [not null, note: 'CHECK IN (image/jpeg, image/png, application/pdf)']
+  size_bytes    integer [not null, note: 'CHECK <= 10485760 (10 MB)']
+  status        prescription_status [not null, default: 'cho-duyet']
+  reject_reason varchar(255)
+  reviewed_by   varchar(128)
+  reviewed_at   timestamptz
+  delete_after  timestamptz [not null, note: 'Xoá sau khi đơn hoàn tất — tác vụ định kỳ đọc cột này. Một lời hứa không có cột nào giữ thì không phải lời hứa.']
+
+  indexes {
+    status [name: 'prescriptions_pending_idx — partial WHERE status = cho-duyet']
+    delete_after [name: 'prescriptions_delete_idx']
+  }
+
+  Note: '''Bảng NHẠY CẢM, vòng đời riêng.
+CHECK reject_needs_reason — từ chối phải kèm lý do.
+CHECK review_is_stamped — reviewed_by và reviewed_at cùng có hoặc cùng NULL.'''
+}
+
+// ============================================================
+// NHÓM C — AI
+// ============================================================
+
+Table ai_sessions {
+  id          uuid [pk, default: `gen_random_uuid()`]
+  customer_id uuid [ref: > customers.id]
+  tool        ai_tool [not null]
+  created_at  timestamptz [not null, default: `now()`]
+}
+
+Table ai_tool_events {
+  id            bigserial [pk]
+  session_id    uuid [ref: > ai_sessions.id]
+  tool          ai_tool [not null]
+  added_to_cart boolean [not null, default: false]
+  created_at    timestamptz [not null, default: `now()`]
+
+  indexes {
+    (tool, created_at) [name: 'ai_tool_events_tool_idx']
+  }
+
+  Note: 'Nguồn của bảng "mức sử dụng công cụ AI" ở /admin/phan-tich.'
+}
+
+Table ai_consult_results {
+  id         uuid [pk, default: `gen_random_uuid()`]
+  session_id uuid [not null, ref: > ai_sessions.id]
+  query      text [not null]
+  reading    text [not null]
+  groups     jsonb [not null, note: '[{ title, reason, product_ids[] }]']
+  red_flags  jsonb [not null, default: '[]']
+  self_care  text[] [not null, default: '{}']
+  confidence smallint [not null, note: 'CHECK 0..100']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table ai_search_results {
+  id         uuid [pk, default: `gen_random_uuid()`]
+  session_id uuid [not null, ref: > ai_sessions.id]
+  query      text [not null]
+  understood text [not null]
+  filters    jsonb [not null, default: '[]']
+  hits       jsonb [not null, note: '[{ product_id, reason }]']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table ai_identify_results {
+  id          uuid [pk, default: `gen_random_uuid()`]
+  session_id  uuid [not null, ref: > ai_sessions.id]
+  read_text   text[] [not null, default: '{}']
+  candidates  jsonb [not null, note: '[{ product_id, percent, evidence[] }]']
+  confidence  smallint [not null, note: 'CHECK 0..100']
+  must_verify text [not null]
+  created_at  timestamptz [not null, default: `now()`]
+}
+
+Table ai_messages {
+  id               bigserial [pk]
+  session_id       uuid [not null, ref: > ai_sessions.id]
+  question         text [not null]
+  paragraphs       text[] [not null, default: '{}']
+  follow_ups       text[] [not null, default: '{}']
+  needs_pharmacist boolean [not null, default: false]
+  created_at       timestamptz [not null, default: `now()`]
+
+  indexes {
+    (session_id, created_at) [name: 'ai_messages_session_idx']
+  }
+
+  Note: 'Bốn bảng kết quả AI cùng một khuôn: lưu KẾT QUẢ ĐÃ CHUẨN HOÁ, không lưu prompt và không lưu văn xuôi tự do. Khi lắp mô hình thật, dữ liệu mẫu viết tay và kết quả mô hình phải nằm cùng một bảng cùng một khuôn.'
+}
+
+Table red_flags {
+  id       serial [pk]
+  label    varchar(128) [not null]
+  action   text [not null]
+  keywords text[] [not null, default: '{}']
+
+  Note: 'Thư viện cờ đỏ triệu chứng. Ở CSDL chứ không viết trong mã: danh sách này do dược sĩ cập nhật, không do lập trình viên. Đây là dữ liệu y khoa.'
+}
+
+Table pharmacist_handoffs {
+  id            bigserial [pk]
+  session_id    uuid [not null, ref: > ai_sessions.id]
+  reason        handoff_reason [not null]
+  status        handoff_status [not null, default: 'cho-tiep-nhan']
+  pharmacist_id varchar(128)
+  created_at    timestamptz [not null, default: `now()`]
+
+  indexes {
+    (status, created_at) [name: 'pharmacist_handoffs_queue_idx']
+  }
+
+  Note: 'Chỉ số AN TOÀN, không phải chỉ số thất bại: một chatbot dược sĩ chuyển 0% ca sang người thật là chatbot đang trả lời những câu nó không đủ thẩm quyền.'
+}
+
+// ============================================================
+// NHÓM D — NỘI DUNG VÀ TỔNG HỢP
+// ============================================================
+
+Table static_pages {
+  slug       varchar(64) [pk, note: 'gioi-thieu, faq, ...']
+  title      varchar(255) [not null]
+  lead       text [not null]
+  sort_order smallint [not null, default: 0]
+}
+
+Table page_sections {
+  id         bigserial [pk]
+  page_slug  varchar(64) [not null, ref: > static_pages.slug]
+  title      varchar(255) [not null]
+  body       text[] [not null, default: '{}']
+  list_items text[] [not null, default: '{}']
+  sort_order smallint [not null, default: 0]
+
+  indexes {
+    (page_slug, sort_order) [name: 'page_sections_page_idx']
+  }
+}
+
+Table articles {
+  slug            varchar(128) [pk]
+  tag             varchar(64) [not null]
+  title           varchar(255) [not null]
+  excerpt         text [not null]
+  author          varchar(128) [not null]
+  published_at    date [not null]
+  reading_minutes smallint [not null, note: 'CHECK > 0']
+  image_url       varchar(255) [not null]
+  body            jsonb [not null, default: '[]', note: '[{kind: para|list|warning, text?, items?}] — đúng kiểu ArticleBlock.']
+
+  indexes {
+    published_at [name: 'articles_published_idx — DESC']
+  }
+}
+
+Table comments {
+  id           varchar(64) [pk]
+  article_slug varchar(128) [not null, ref: > articles.slug]
+  author       varchar(128) [not null]
+  initials     varchar(4) [not null]
+  created_at   timestamptz [not null, default: `now()`]
+  body         text [not null]
+  hidden       boolean [not null, default: false, note: 'Ẩn chứ KHÔNG xoá — cùng lý do với reviews.hidden.']
+  reply_body   text
+  reply_author varchar(128)
+  reply_at     timestamptz
+
+  indexes {
+    (article_slug, created_at) [name: 'comments_article_idx — DESC']
+    created_at [name: 'comments_unanswered_idx — partial WHERE NOT hidden AND reply_body IS NULL']
+  }
+
+  Note: 'CHECK reply_complete — reply_body, reply_author, reply_at hoặc cùng có hoặc cùng NULL.'
+}
+
+Table daily_sales {
+  date    date [pk]
+  revenue bigint [not null, note: 'CHECK >= 0']
+  orders  integer [not null, note: 'CHECK >= 0']
+}
+
+Table category_sales {
+  period_from    date [note: 'CHECK period_from <= period_to']
+  period_to      date
+  category_slug  varchar(64) [ref: > categories.slug]
+  revenue        bigint [not null, note: 'CHECK >= 0']
+  orders         integer [not null, note: 'CHECK >= 0']
+  change_percent numeric(5,1) [not null]
+
+  indexes {
+    (period_from, period_to, category_slug) [pk]
+  }
+}
+
+Table product_sales {
+  period_from date [note: 'CHECK period_from <= period_to']
+  period_to   date
+  product_id  varchar(64) [ref: > products.id]
+  units_sold  integer [not null, note: 'CHECK >= 0']
+  views       integer [not null, note: 'CHECK >= 0']
+
+  indexes {
+    (period_from, period_to, product_id) [pk]
+  }
+
+  Note: 'Bảng TÍNH SẴN theo đêm, không phải bảng giao dịch. Trang phân tích và câu nhận xét do AI viết PHẢI đọc cùng một nguồn: nếu trang tự tính một phần và AI tính phần khác thì sẽ có ngày biểu đồ nói doanh thu tăng còn câu nhận xét nói giảm, và người đọc không có cách nào biết bên nào đúng.'
+}
+
+// ============================================================
+// VIEW — DBML không có view, dựng tạm thành bảng để hiện trên sơ đồ
+// ============================================================
+
+Table combo_suggestions_sellable {
+  id                   bigserial [pk]
+  scope                combo_scope
+  scope_id             varchar(64)
+  basis                text
+  suggested_product_id varchar(64)
+  reason               varchar(255)
+  sort_order           smallint
+
+  Note: 'VIEW. Lọc TRƯỚC KHI trả kết quả: bỏ hết hàng, bỏ thuốc kê đơn (không được bán thêm kèm), bỏ sản phẩm cùng danh mục đang xem. Ba bộ lọc đó nằm ở view chứ không chỉ trong mã, vì mã có nhiều đường vào còn view thì chỉ một.'
+}
+
+Table stock_forecast {
+  product_id varchar(64) [pk]
+  slug       varchar(128)
+  name       varchar(255)
+  remaining  integer [note: 'Tổng tồn trên mọi nhà thuốc']
+  daily_rate numeric [note: 'Trung bình bán mỗi ngày trong kỳ báo cáo gần nhất, dùng để tính số ngày còn hàng.']
+
+  Note: 'VIEW. Trung bình bán mỗi ngày trong kỳ báo cáo, dùng để tính số ngày còn hàng.'
+}

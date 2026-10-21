@@ -14,8 +14,8 @@ import type { Product } from "@/lib/types";
  *
  * Vì sao KHÔNG để mỗi trang tự viết `<Link><Image/></Link>`: trước đây ba chỗ
  * (dòng giỏ hàng, danh sách ở bước thanh toán, gợi ý mua kèm) tự dựng markup ảnh
- * riêng, và cả ba đều truyền thẳng `product.image` vào `next/image`. Toàn bộ 24 sản
- * phẩm hiện chưa có ảnh thật (`image: ""`), nên `next/image` nhận chuỗi rỗng và văng
+ * riêng, và cả ba đều truyền thẳng `product.image` vào `next/image`. Sản phẩm thêm
+ * mới có thể chưa có ảnh (`image: ""`), và khi đó `next/image` nhận chuỗi rỗng, văng
  * lỗi "Image is missing required src property" ở mọi trang có sản phẩm. `ProductImage`
  * đã chặn đúng trường hợp này bằng nhánh placeholder từ đầu — ba chỗ kia không chạy
  * qua nó nên không được bảo vệ.

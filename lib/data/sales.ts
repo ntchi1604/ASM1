@@ -229,3 +229,41 @@ export function resolveStockAlerts(): ResolvedStockAlert[] {
     })
     .sort((a, b) => daysOfStock(a) - daysOfStock(b));
 }
+
+export type RatingRow = {
+  productId: string;
+  name: string;
+  slug: string;
+  score: number;
+  count: number;
+};
+
+/**
+ * Điểm đánh giá từng sản phẩm, thấp lên trước. Sản phẩm chưa có điểm bị loại —
+ * hiện "0 sao" cho mặt hàng chưa ai đánh giá là nói sai về nó.
+ *
+ * Sắp thấp lên trước vì đây là bảng để TÌM VẤN ĐỀ; bảng sắp cao xuống chỉ để
+ * khoe, và người quản lý cuộn hết mới thấy mặt hàng đang bị chê.
+ */
+export function getRatingRows(): RatingRow[] {
+  return products
+    .filter((product) => product.rating)
+    .map((product) => ({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      score: product.rating!.score,
+      count: product.rating!.count,
+    }))
+    .sort((a, b) => a.score - b.score || b.count - a.count);
+}
+
+/** Điểm trung bình có trọng số theo số lượt — trung bình cộng của 24 sản phẩm là số vô nghĩa. */
+export function getAverageRating(): number {
+  const rows = getRatingRows();
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  if (total === 0) return 0;
+  return Number(
+    (rows.reduce((sum, row) => sum + row.score * row.count, 0) / total).toFixed(2),
+  );
+}

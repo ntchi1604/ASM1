@@ -9,6 +9,9 @@ const pad = (n: number) => n.toString().padStart(2, "0");
  * Đếm ngược tới cuối ngày. Server và lần render đầu ở client đều dùng
  * `initialSeconds` truyền vào nên không lệch hydration; chỉ sau khi mount
  * mới tính theo giờ thật của máy người dùng.
+ *
+ * Ô số nền cam đặc chứ không phải nền trắng mờ: header giảm giá giờ là nền
+ * cam nhạt, nên ô số phải là chỗ đậm nhất trong hàng để mắt bắt được số.
  */
 export function SaleCountdown({ initialSeconds }: { initialSeconds: number }) {
   const [seconds, setSeconds] = useState(initialSeconds);
@@ -31,14 +34,14 @@ export function SaleCountdown({ initialSeconds }: { initialSeconds: number }) {
   const s = seconds % 60;
 
   return (
-    <p className="flex items-center gap-2 text-label-md text-white">
+    <p className="flex items-center gap-2 text-label-md text-promo-text">
       <Timer size={16} aria-hidden />
       Kết thúc sau
-      <span className="flex items-center gap-1 font-mono" aria-live="off">
+      <span className="flex items-center gap-1 font-mono font-bold" aria-live="off">
         {[h, m, s].map((value, i) => (
           <span key={i} className="flex items-center gap-1">
             {i > 0 ? <span aria-hidden>:</span> : null}
-            <span className="rounded bg-white/20 px-1.5 py-0.5 tabular-nums">
+            <span className="rounded bg-promo-text px-1.5 py-0.5 text-white tabular-nums">
               {pad(value)}
             </span>
           </span>

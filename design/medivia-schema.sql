@@ -25,23 +25,34 @@ CREATE TYPE audience       AS ENUM ('nguoi-lon', 'tre-em', 'nguoi-cao-tuoi');
 CREATE TYPE unit_label     AS ENUM ('Hộp', 'Vỉ', 'Viên', 'Tuýp', 'Lọ', 'Chai', 'Gói');
 CREATE TYPE severity       AS ENUM ('nghiem-trong', 'trung-binh', 'nhe');
 
+-- Hai vai trò, không phải ba: chỉ có hai loại việc khác nhau về trách nhiệm pháp
+-- lý. `duoc-si` là người DUY NHẤT được duyệt đơn thuốc, vì đơn thuốc kê đơn phải
+-- có người có chứng chỉ hành nghề đứng tên.
+CREATE TYPE admin_role     AS ENUM ('duoc-si', 'ke-toan');
+
 CREATE TABLE categories (
   slug                  varchar(64)  PRIMARY KEY,
   name                  varchar(128) NOT NULL,
   short_name            varchar(64)  NOT NULL,
+  -- Khoá icon, không phải tên tệp: giao diện tra khoá trong `lib/data/categories.ts`.
+  icon                  varchar(32)  NOT NULL,
   description           text         NOT NULL,
   -- Gợi ý AI ở dải tím trang danh mục. Để trống thì khối tự ẩn.
   ai_hint_message       text,
   ai_hint_action_label  varchar(64),
   ai_hint_action_href   varchar(128),
   sort_order            smallint     NOT NULL DEFAULT 0,
-  -- Hint chỉ có nghĩa khi đủ cả câu chữ; href phải trỏ tới danh mục có thật.
+  -- Hint chỉ có nghĩa khi đủ cả câu chữ; href phải trỏ tới một đường dẫn có thật.
   CONSTRAINT hint_action_complete CHECK (
     (ai_hint_action_label IS NULL) = (ai_hint_action_href IS NULL)
   ),
-  CONSTRAINT hint_href_is_category CHECK (
+  -- Đích của nút có thể là một danh mục khác ("xem thuốc long đờm") hoặc một
+  -- công cụ AI ("kiểm tra tương tác"). Cả hai đều là đích thật trong ứng dụng;
+  -- chỉ chặn đường dẫn ra ngoài hai nhánh đó.
+  CONSTRAINT hint_href_is_known CHECK (
     ai_hint_action_href IS NULL
     OR ai_hint_action_href LIKE '/danh-muc/%'
+    OR ai_hint_action_href LIKE '/ai/%'
   )
 );
 
@@ -66,6 +77,10 @@ CREATE TABLE products (
   -- phải nói cùng một chuyện, có điểm mà không có lượt đánh giá là vô nghĩa.
   rating_score           numeric(2,1) CHECK (rating_score BETWEEN 0 AND 5),
   rating_count           integer      CHECK (rating_count >= 0),
+  -- Ngày dự kiến có hàng lại. Chỉ có nghĩa khi tổng tồn bằng 0: trang chi tiết
+  -- hiện "có hàng lại từ …", form kho thuốc nhập được, và thông báo cho khách
+  -- chờ hàng đọc đúng cột này.
+  restock_date           date,
   CONSTRAINT rating_is_a_pair CHECK (
     (rating_score IS NULL) = (rating_count IS NULL)
   ),
@@ -153,7 +168,20 @@ CREATE TABLE reviews (
   score              smallint     NOT NULL CHECK (score BETWEEN 1 AND 5),
   body               text         NOT NULL,
   created_at         date         NOT NULL,
-  verified_purchase  boolean      NOT NULL DEFAULT false
+  verified_purchase  boolean      NOT NULL DEFAULT false,
+  -- Đuôi tệp nằm ngay trong tên: máy chủ suy `Content-Type` từ đó lúc phục vụ,
+  -- không tin kiểu MIME trình duyệt khai lúc tải lên.
+  photos             text[]       NOT NULL DEFAULT '{}',
+  video              text,
+  -- Đơn đã giao dùng để xác thực câu "đã mua tại MediVia". NULL với đánh giá
+  -- mẫu: chúng có trước khi có đường viết đánh giá. Khoá ngoại gắn sau, ở cuối
+  -- tệp — `orders` được tạo sau bảng này, và PostgreSQL không cho tham chiếu tới
+  -- bảng chưa tồn tại.
+  order_code         varchar(16),
+  -- Quản trị ẩn khỏi trang sản phẩm. Ẩn chứ KHÔNG xoá: nội dung khách viết là
+  -- bằng chứng khi có khiếu nại.
+  hidden             boolean      NOT NULL DEFAULT false,
+  CONSTRAINT photos_within_limit CHECK (cardinality(photos) <= 3)
 );
 
 CREATE INDEX reviews_product_idx ON reviews (product_id, created_at DESC);
@@ -167,6 +195,8 @@ CREATE TABLE pharmacies (
   latitude        numeric(9,6) NOT NULL,
   longitude       numeric(9,6) NOT NULL,
   opening_hours   varchar(128) NOT NULL,
+  -- In ở danh sách nhà thuốc để khách gọi trước khi tới.
+  phone           varchar(32)  NOT NULL,
   is_pickup_point boolean      NOT NULL DEFAULT false
 );
 
@@ -226,6 +256,10 @@ CREATE TABLE customers (
   phone       varchar(16)  NOT NULL UNIQUE,
   full_name   varchar(128) NOT NULL,
   email       varchar(255),
+  -- `scrypt$<salt>$<hash>`, KHÔNG lưu chữ thô. Xem `lib/shop/customer-auth.ts`.
+  -- Cột này là lý do khách đăng nhập được; thiếu nó thì `customers` chỉ còn là
+  -- danh bạ, và mọi mật khẩu phải nằm đâu đó ngoài lược đồ.
+  password_hash text       NOT NULL,
   created_at  timestamptz  NOT NULL DEFAULT now()
 );
 
@@ -240,6 +274,28 @@ CREATE TABLE customer_addresses (
 );
 
 CREATE INDEX customer_addresses_customer_idx ON customer_addresses (customer_id);
+
+-- Tài khoản quản trị.
+--
+-- Password nằm thẳng trong mã ở bản mẫu (`lib/admin/users.ts`) vì không có cơ sở
+-- dữ liệu và cả ba tài khoản đều là trình diễn. Khi có bảng này thì không còn lý
+-- do đó: một dòng trong bảng còn xoá được, một chuỗi trong mã thì phải deploy lại.
+-- Vẫn là `password_hash` chứ không phải mật khẩu thô — thói quen viết sai một lần
+-- là sai luôn ở chỗ thật.
+CREATE TABLE admin_users (
+  username      varchar(64)  PRIMARY KEY,
+  -- Cùng định dạng `scrypt$<salt>$<hash>` với `customers.password_hash`.
+  password_hash text         NOT NULL,
+  full_name     varchar(128) NOT NULL,
+  role          admin_role   NOT NULL,
+  title         varchar(128) NOT NULL,
+  active        boolean      NOT NULL DEFAULT true,
+  created_at    timestamptz  NOT NULL DEFAULT now()
+);
+
+-- Vai trò quyết định ai được duyệt đơn thuốc. Tra thẳng bằng SQL khi cần kiểm
+-- toán: "đơn này ai duyệt" phải trả lời được mà không mở mã nguồn.
+CREATE INDEX admin_users_role_idx ON admin_users (role) WHERE active;
 
 CREATE TABLE carts (
   id           uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -268,6 +324,12 @@ CREATE TABLE coupons (
   min_subtotal  integer     NOT NULL CHECK (min_subtotal >= 0),
   description   varchar(255) NOT NULL,
   active        boolean     NOT NULL DEFAULT true,
+  -- Cửa sổ hiệu lực. Bỏ trống = không giới hạn. Dùng `date` chứ không phải
+  -- timestamptz: mã mở lúc 0h giờ Việt Nam, không phải 0h UTC (sớm hơn 7 tiếng).
+  -- Ngày kết thúc tính CẢ ngày đó.
+  start_at      date,
+  end_at        date,
+  CONSTRAINT window_ordered CHECK (start_at IS NULL OR end_at IS NULL OR start_at <= end_at),
   CONSTRAINT amount_matches_kind CHECK (
     (kind = 'amount' AND amount IS NOT NULL) OR
     (kind = 'freeship' AND amount IS NULL)
@@ -289,8 +351,14 @@ CREATE TABLE payment_methods (
 );
 
 CREATE TYPE order_status AS ENUM (
-  'cho-xac-nhan', 'da-xac-nhan', 'dang-giao', 'da-giao', 'da-huy'
+  'cho-xac-nhan', 'da-xac-nhan', 'dang-giao', 'da-giao',
+  -- Giao quá 3 ngày mà khách không phản hồi thì đơn tự đóng; 'da-giao' là trạng
+  -- thái duy nhất còn mở cửa sổ đổi trả.
+  'hoan-thanh', 'hoan-tra', 'da-huy'
 );
+
+-- Kết quả xử lý một yêu cầu hoàn trả. NULL = khách đã báo, quản trị chưa xem.
+CREATE TYPE return_decision AS ENUM ('da-chap-nhan', 'tu-choi');
 
 CREATE TABLE orders (
   id                    uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -310,13 +378,38 @@ CREATE TABLE orders (
   -- Suy ra từ các dòng hàng, nhưng chốt lại ở đây để tra nhanh hàng đợi duyệt.
   requires_prescription boolean       NOT NULL DEFAULT false,
   note                  text,
+  -- Đơn khách tự đặt có cả hai: email để gửi xác nhận, và địa chỉ giao dạng
+  -- một chuỗi đã ghép. Địa chỉ ở đây là BẢN CHỤP lúc đặt hàng, không phải khoá
+  -- tới `customer_addresses`: sửa sổ địa chỉ về sau không được viết lại đơn cũ.
+  email                 varchar(255),
+  address               text,
   company_name          varchar(255),
   tax_code              varchar(32),
-  created_at            timestamptz   NOT NULL DEFAULT now()
+  created_at            timestamptz   NOT NULL DEFAULT now(),
+  -- Mốc giao thành công. Cửa sổ 3 ngày tự hoàn thành tính từ đây, không từ
+  -- created_at: đơn giao chậm không được tự đóng trước khi khách cầm hàng.
+  delivered_at          timestamptz,
+  return_reason         text,
+  return_note           text,
+  return_requested_at   timestamptz,
+  return_decision       return_decision,
+  return_decided_at     timestamptz,
+  -- Hoàn trả luôn có lý do. Chuyển sang 'hoan-tra' mà không ghi vì sao là đơn
+  -- mất tiền không ai giải thích được.
+  CONSTRAINT return_needs_reason CHECK (
+    status <> 'hoan-tra' OR return_reason IS NOT NULL
+  )
 );
 
 CREATE INDEX orders_code_idx ON orders (code);
 CREATE INDEX orders_customer_idx ON orders (customer_id, created_at DESC);
+
+-- Khoá ngoại của `reviews.order_code` gắn ở đây: bảng `reviews` tạo trước
+-- `orders`, và PostgreSQL từ chối tham chiếu tới bảng chưa tồn tại. ON DELETE SET
+-- NULL chứ không CASCADE: xoá một đơn không được làm biến mất đánh giá của khách.
+ALTER TABLE reviews
+  ADD CONSTRAINT reviews_order_fk
+  FOREIGN KEY (order_code) REFERENCES orders(code) ON DELETE SET NULL;
 CREATE INDEX orders_rx_queue_idx ON orders (status) WHERE requires_prescription;
 
 CREATE TABLE order_items (
@@ -505,6 +598,56 @@ CREATE TABLE page_sections (
 );
 
 CREATE INDEX page_sections_page_idx ON page_sections (page_slug, sort_order);
+
+-- Bài viết Góc sức khoẻ.
+--
+-- Thân bài là MẢNG KHỐI JSONB chứ không phải `page_sections` dùng lại: bài viết
+-- có ba loại khối (đoạn, danh sách, khung cảnh báo) và thứ tự trộn lẫn giữa
+-- chúng là nội dung, không phải trình bày. Tách thành bảng khối thì mỗi khối
+-- thành một dòng, và sửa một câu văn là một thao tác ghi chứ không phải một
+-- phép sửa chuỗi.
+CREATE TABLE articles (
+  slug            varchar(128) PRIMARY KEY,
+  tag             varchar(64)  NOT NULL,
+  title           varchar(255) NOT NULL,
+  excerpt         text         NOT NULL,
+  author          varchar(128) NOT NULL,
+  published_at    date         NOT NULL,
+  reading_minutes smallint     NOT NULL CHECK (reading_minutes > 0),
+  image_url       varchar(255) NOT NULL,
+  -- [{kind: 'para'|'list'|'warning', text?, items?}] — đúng kiểu `ArticleBlock`.
+  body            jsonb        NOT NULL DEFAULT '[]'
+);
+
+CREATE INDEX articles_published_idx ON articles (published_at DESC);
+
+-- Bình luận dưới bài viết. Khác đánh giá sản phẩm ở ba điểm: gắn với BÀI chứ
+-- không với sản phẩm, có GIỜ chứ không chỉ ngày (một câu hỏi về liều thuốc lúc
+-- 22h khác hẳn lúc 9h sáng), và có thể được dược sĩ trả lời ngay dưới.
+CREATE TABLE comments (
+  id           varchar(64)  PRIMARY KEY,
+  article_slug varchar(128) NOT NULL REFERENCES articles(slug) ON DELETE CASCADE,
+  author       varchar(128) NOT NULL,
+  initials     varchar(4)   NOT NULL,
+  created_at   timestamptz  NOT NULL DEFAULT now(),
+  body         text         NOT NULL,
+  -- Ẩn chứ KHÔNG xoá — cùng lý do với `reviews.hidden`.
+  hidden       boolean      NOT NULL DEFAULT false,
+  -- Một câu trả lời cho mỗi bình luận. Ba cột đi cùng nhau hoặc cùng NULL; câu
+  -- trả lời không có người ký thì người đọc không biết ai chịu trách nhiệm.
+  reply_body   text,
+  reply_author varchar(128),
+  reply_at     timestamptz,
+  CONSTRAINT reply_complete CHECK (
+    (reply_body IS NULL) = (reply_author IS NULL)
+    AND (reply_body IS NULL) = (reply_at IS NULL)
+  )
+);
+
+CREATE INDEX comments_article_idx ON comments (article_slug, created_at DESC);
+-- Hàng đợi "bình luận chờ trả lời" ở /admin/binh-luan.
+CREATE INDEX comments_unanswered_idx ON comments (created_at DESC)
+  WHERE NOT hidden AND reply_body IS NULL;
 
 -- Bảng TÍNH SẴN theo đêm, không phải bảng giao dịch. Trang phân tích và câu nhận
 -- xét do AI viết PHẢI đọc cùng một nguồn: nếu trang tự tính một phần và AI tính

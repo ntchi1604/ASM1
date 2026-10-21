@@ -8,6 +8,8 @@ import { Field, Input, Textarea } from "@/components/ui/Field";
 import { formatDate } from "@/lib/format";
 import { articles } from "@/lib/data/home";
 import { deleteArticle, saveArticle } from "@/lib/admin/actions";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { matchesQuery, readFilter } from "@/lib/admin/filter";
 
 export const metadata: Metadata = {
   title: "Bài viết",
@@ -34,9 +36,23 @@ const tagOptions = [
   "Góc sức khoẻ",
 ];
 
-export default function AdminArticlesPage() {
+export default async function AdminArticlesPage({
+  searchParams,
+}: PageProps<"/admin/bai-viet">) {
+  const filter = readFilter(await searchParams, ["q", "the"]);
+  // Nhãn có trong dữ liệu nhưng không có trong danh sách gợi ý vẫn phải lọc được —
+  // danh sách gợi ý là để gõ cho nhanh, không phải danh sách đóng.
+  const tags = [...new Set([...tagOptions, ...articles.map((article) => article.tag)])];
   const totalMinutes = articles.reduce((sum, article) => sum + article.readingMinutes, 0);
   const authors = new Set(articles.map((article) => article.author)).size;
+
+  // Bảng và danh sách sửa bên dưới dùng chung `visible`: hai chỗ hiện cùng bài,
+  // lọc một chỗ mà chỗ kia vẫn đủ là bộ lọc trông như hỏng.
+  const visible = articles.filter(
+    (article) =>
+      matchesQuery(filter.q, article.title, article.excerpt, article.author, article.slug) &&
+      (!filter.the || article.tag === filter.the),
+  );
 
   return (
     <AdminShell activeHref="/admin/bai-viet">
@@ -59,10 +75,35 @@ export default function AdminArticlesPage() {
           />
         </section>
 
+        <AdminFilterBar
+          action="/admin/bai-viet"
+          query={filter.q}
+          placeholder="Tiêu đề, đoạn trích hoặc tác giả"
+          selects={[
+            {
+              name: "the",
+              label: "Chuyên mục",
+              value: filter.the,
+              options: tags.map((tag) => ({ value: tag, label: tag })),
+            },
+          ]}
+        />
+
         <Card className="overflow-hidden">
           <div className="p-4 md:p-5">
-            <SectionHeading title="Bài đang đăng" />
+            <SectionHeading
+              title={
+                visible.length === articles.length
+                  ? "Bài đang đăng"
+                  : `${visible.length} / ${articles.length} bài khớp bộ lọc`
+              }
+            />
           </div>
+          {visible.length === 0 ? (
+            <p className="border-t border-hairline px-4 py-4 text-body-md text-ink-muted md:px-5">
+              Không có bài nào khớp bộ lọc đang chọn.
+            </p>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] border-t border-hairline text-left">
               <thead className="bg-recessed">
@@ -75,8 +116,12 @@ export default function AdminArticlesPage() {
                 </tr>
               </thead>
               <tbody>
-                {articles.map((article) => (
-                  <tr key={article.slug} className="border-t border-divider align-top">
+                {visible.map((article) => (
+                  <tr
+                    key={article.slug}
+                    id={`bv-${article.slug}`}
+                    className="scroll-mt-24 border-t border-divider align-top"
+                  >
                     <td className="px-4 py-3">
                       <Link
                         href={`/goc-suc-khoe/${article.slug}`}
@@ -108,6 +153,7 @@ export default function AdminArticlesPage() {
               </tbody>
             </table>
           </div>
+          )}
         </Card>
 
         <Card className="overflow-hidden">
@@ -119,7 +165,7 @@ export default function AdminArticlesPage() {
             </p>
           </div>
           <ul className="border-t border-hairline">
-            {articles.map((article) => (
+            {visible.map((article) => (
               <li key={article.slug} className="border-b border-divider last:border-b-0">
                 <details>
                   <summary className="focus-ring flex cursor-pointer items-center justify-between gap-2 px-4 py-3 hover:bg-recessed md:px-5">

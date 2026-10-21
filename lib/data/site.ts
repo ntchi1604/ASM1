@@ -18,9 +18,13 @@ export const searchPlaceholder =
   "Nhập triệu chứng hoặc tên thuốc — ví dụ: thuốc đau đầu dưới 100.000 ₫";
 
 export const utilityBarLinks = [
-  { label: "Tra cứu đơn hàng", href: "/tra-cuu-don-hang" },
-  { label: `Hệ thống ${site.pharmacyCount.toLocaleString("vi-VN")} nhà thuốc`, href: "/he-thong-nha-thuoc" },
-  { label: "Tải ứng dụng", href: "/tai-ung-dung" },
+  { label: "Tra cứu đơn hàng", href: "/tra-cuu-don-hang", icon: "truck" },
+  {
+    label: `Hệ thống ${site.pharmacyCount.toLocaleString("vi-VN")} nhà thuốc`,
+    href: "/he-thong-nha-thuoc",
+    icon: "store",
+  },
+  { label: "Tải ứng dụng", href: "/tai-ung-dung", icon: "smartphone" },
 ] as const;
 
 /**
@@ -95,9 +99,3 @@ export const aiDisclaimer =
 /** Ghi chú cạnh giá thuốc kê đơn. */
 export const prescriptionPriceNote = "Cần tư vấn trước khi bán";
 
-/** Khách mẫu, dùng ở giỏ hàng, thanh toán, tài khoản. */
-export const sampleCustomer = {
-  name: "Nguyễn Thị Lan",
-  phone: "0912 345 678",
-  address: "142 Nguyễn Đình Chiểu, P. Võ Thị Sáu, Q.3, TP.HCM",
-} as const;

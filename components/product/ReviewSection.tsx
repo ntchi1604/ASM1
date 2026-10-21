@@ -1,6 +1,7 @@
 import { CircleCheck } from "@/lib/icons";
 import { RatingStars } from "@/components/product/RatingStars";
 import { formatCount, formatDate } from "@/lib/format";
+import { mediaUrl } from "@/lib/media";
 import type { Review, ReviewSummary } from "@/lib/types";
 
 /**
@@ -83,6 +84,7 @@ export function ReviewSection({
                     </span>
                   </div>
                   <p className="mt-1.5 text-body-sm text-ink-muted">{review.body}</p>
+                  <ReviewMedia photos={review.photos} video={review.video} author={review.author} />
                 </div>
               </li>
             ))}
@@ -90,5 +92,60 @@ export function ReviewSection({
         ) : null}
       </div>
     </section>
+  );
+}
+
+/**
+ * Ảnh và video khách đính kèm.
+ *
+ * Thẻ `<img>` chứ không phải `next/image`: tệp sinh ra lúc chạy nằm sau một
+ * route handler, không phải tài sản build sẵn, nên bộ tối ưu của next/image
+ * không có gì để làm — nó chỉ thêm một lớp proxy. `loading="lazy"` và kích
+ * thước cố định giữ nguyên tác dụng chính là không tải ảnh ngoài màn hình.
+ * Ảnh khách chụp không có tỉ lệ cố định nên ô dùng `object-cover`.
+ */
+function ReviewMedia({
+  photos,
+  video,
+  author,
+}: {
+  photos?: string[];
+  video?: string;
+  author: string;
+}) {
+  if (!photos?.length && !video) return null;
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {photos?.map((name) => (
+        <a
+          key={name}
+          href={mediaUrl(name)}
+          target="_blank"
+          rel="noreferrer"
+          className="focus-ring block size-20 overflow-hidden rounded-card border border-hairline bg-recessed"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- tệp sinh lúc chạy, xem chú thích trên. */}
+          <img
+            src={mediaUrl(name)}
+            alt={`Ảnh đánh giá của ${author}`}
+            width={80}
+            height={80}
+            loading="lazy"
+            className="size-full object-cover"
+          />
+        </a>
+      ))}
+      {video ? (
+        <video
+          src={mediaUrl(video)}
+          controls
+          preload="metadata"
+          className="h-20 w-32 rounded-card border border-hairline bg-black"
+        >
+          <a href={mediaUrl(video)}>Xem video đánh giá của {author}</a>
+        </video>
+      ) : null}
+    </div>
   );
 }

@@ -8,11 +8,15 @@ import {
   addRow,
   changedCounts,
   getRow,
+  listRows,
   removeRow,
   resetAll,
   updateRow,
 } from "@/lib/admin/db";
+import { isCategoryIcon } from "@/lib/data/categories";
+import { collections } from "@/lib/data/collections";
 import { parseSections } from "@/lib/admin/page-text";
+import { mediaUrl, removeMediaFromUrl, saveProductImage } from "@/lib/media";
 import { getOrderByCode } from "@/lib/data/orders";
 import {
   requireRole,
@@ -20,7 +24,7 @@ import {
   sessionCookie,
   sessionCookieName,
 } from "@/lib/admin/auth";
-import type { Product, ProductUnit, UnitLabel } from "@/lib/types";
+import type { CartLine, Product, ProductUnit, UnitLabel } from "@/lib/types";
 
 /**
  * Mọi thao tác ghi của phần quản trị.
@@ -43,6 +47,12 @@ const ok = (message: string): ActionState => ({ ok: true, message });
 const err = (message: string): ActionState => ({ ok: false, message });
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
+
+/** Ô chọn tệp. Trả `undefined` khi để trống — cùng nghĩa "không đổi ảnh". */
+const fileOf = (data: FormData, key: string) => {
+  const value = data.get(key);
+  return value instanceof File ? value : undefined;
+};
 
 const money = (data: FormData, key: string) => {
   // Bỏ mọi dấu phân cách người dùng gõ vào: "1.234.567 ₫" và "1234567" phải ra
@@ -160,6 +170,17 @@ export async function addProduct(_prev: ActionState, data: FormData): Promise<Ac
   if (Number.isNaN(price) || price <= 0) return err("Giá bán phải là số lớn hơn 0.");
   if (!Number.isInteger(total) || total < 0) return err("Tồn kho phải là số nguyên không âm.");
 
+  // Ảnh tải lên phải lưu TRƯỚC dòng dữ liệu: ghi dòng trước rồi mới lưu tệp
+  // thì một tệp hỏng để lại mặt hàng trỏ vào ảnh không tồn tại, và không có gì
+  // báo cho người thêm.
+  let image = "";
+  try {
+    const name = await saveProductImage(fileOf(data, "image"));
+    if (name) image = mediaUrl(name);
+  } catch (error) {
+    return err(error instanceof Error ? error.message : "Không lưu được ảnh.");
+  }
+
   const product: Product = {
     id,
     slug: text(data, "slug") || id,
@@ -175,7 +196,7 @@ export async function addProduct(_prev: ActionState, data: FormData): Promise<Ac
     prescriptionRequired: data.get("prescriptionRequired") === "on",
     units: [{ label: (text(data, "unitLabel") || "Hộp") as UnitLabel, price }],
     stock: { total, nearbyPharmacies: 0 },
-    image: "",
+    image,
     shortUses: text(data, "shortUses") || "Chưa có mô tả.",
   };
 
@@ -188,6 +209,81 @@ export async function addProduct(_prev: ActionState, data: FormData): Promise<Ac
   return ok(`Đã thêm ${name}.`);
 }
 
+/**
+ * Sửa thuộc tính của mặt hàng đã có.
+ *
+ * Không nhận `id` và `slug`: mã là khoá của dòng, đường dẫn là địa chỉ công khai
+ * đã được chia sẻ và ghi trong đơn cũ. Đổi đường dẫn làm mọi liên kết đã trỏ tới
+ * mặt hàng thành 404, trong khi không ai xoá được liên kết đã gửi đi.
+ *
+ * Danh mục phải là danh mục đang có thật — gõ tự do thì mặt hàng rơi khỏi mọi
+ * trang danh mục mà vẫn mở được bằng đường dẫn trực tiếp, và không màn hình nào
+ * báo điều đó.
+ */
+export async function saveProduct(_prev: ActionState, data: FormData): Promise<ActionState> {
+  await requireRole("duoc-si", "ke-toan");
+
+  const id = text(data, "id");
+  const product = getRow("products", id) as unknown as Product | undefined;
+  if (!product) return err("Không tìm thấy mặt hàng này.");
+
+  const name = text(data, "name");
+  const categorySlug = text(data, "categorySlug");
+  const type = text(data, "type") as Product["type"];
+  const dosageForm = text(data, "dosageForm") as Product["dosageForm"];
+
+  if (!name) return err("Thiếu tên mặt hàng.");
+  if (!getRow("categories", categorySlug)) return err("Danh mục không có thật. Chọn lại.");
+  if (!["drug", "supplement", "cosmetic", "device"].includes(type)) {
+    return err("Loại hàng không hợp lệ.");
+  }
+  if (!["vien-nen", "vien-sui", "siro", "goi-bot", "xit-nho", "vien-ngam", "ong-uong", "dung-dich"].includes(dosageForm)) {
+    return err("Dạng bào chế không hợp lệ.");
+  }
+
+  const audiences = data.getAll("audiences").map(String) as Product["audiences"];
+  if (audiences.some((value) => !["nguoi-lon", "tre-em", "nguoi-cao-tuoi"].includes(value))) {
+    return err("Đối tượng dùng không hợp lệ.");
+  }
+
+  // Ảnh mới ghi xong mới xoá ảnh cũ: làm ngược lại thì một ảnh hỏng để mặt hàng
+  // mất ảnh đang có, mà ảnh cũ cũng đã bị xoá khỏi đĩa.
+  let image = product.image;
+  let replaced = false;
+  try {
+    const name = await saveProductImage(fileOf(data, "image"));
+    if (name) {
+      image = mediaUrl(name);
+      replaced = true;
+    }
+  } catch (error) {
+    return err(error instanceof Error ? error.message : "Không lưu được ảnh.");
+  }
+
+  updateRow("products", id, {
+    name,
+    activeIngredient: text(data, "activeIngredient") || "Chưa khai báo",
+    strength: text(data, "strength"),
+    brand: text(data, "brand") || "Chưa khai báo",
+    origin: text(data, "origin") || "Việt Nam",
+    categorySlug,
+    type,
+    dosageForm,
+    audiences,
+    prescriptionRequired: data.get("prescriptionRequired") === "on",
+    shortUses: text(data, "shortUses") || "Chưa có mô tả.",
+    image,
+  });
+
+  if (replaced) await removeMediaFromUrl(product.image);
+
+  revalidatePath("/admin/kho-thuoc");
+  revalidatePath("/");
+  revalidatePath(`/thuoc/${product.slug}`);
+  revalidatePath(`/danh-muc/${categorySlug}`);
+  return ok(`Đã lưu thuộc tính của ${name}.`);
+}
+
 export async function deleteProduct(_prev: ActionState, data: FormData): Promise<ActionState> {
   await requireRole("duoc-si");
 
@@ -195,7 +291,24 @@ export async function deleteProduct(_prev: ActionState, data: FormData): Promise
   const product = getRow("products", id) as unknown as Product | undefined;
   if (!product) return err("Không tìm thấy mặt hàng này.");
 
+  // Đơn đã chốt dựng lại từ danh mục hiện tại (`resolveOrder` → `getCartItems`),
+  // nên xoá mặt hàng là dòng đó biến mất khỏi đơn cũ và tổng tiền đọc lại thấp
+  // hơn số khách đã trả. Chặn ở đây rẻ hơn lưu ảnh chụp giá vào từng dòng đơn,
+  // và đúng với yêu cầu lưu hồ sơ bán thuốc.
+  const usedBy = listRows("orders").filter((row) =>
+    (row.lines as CartLine[] | undefined)?.some((line) => line.productId === id),
+  );
+  if (usedBy.length > 0) {
+    const codes = usedBy.slice(0, 3).map((row) => String(row.code)).join(", ");
+    return err(
+      `Không xoá được: ${usedBy.length} đơn đã có mặt hàng này (${codes}${usedBy.length > 3 ? "…" : ""}). Đặt tồn kho về 0 để ngừng bán — đơn cũ giữ nguyên.`,
+    );
+  }
+
   removeRow("products", id);
+  // Ảnh tải lên không còn ai trỏ tới thì xoá luôn; ảnh trong `public/products`
+  // vẫn thuộc về mã nguồn và không bị đụng.
+  await removeMediaFromUrl(product.image);
   revalidatePath("/admin/kho-thuoc");
   revalidatePath("/");
   return ok(`Đã xoá ${product.name}.`);
@@ -254,7 +367,15 @@ export async function reviewPrescription(
 
 // ------------------------------------------------------------------ Đơn hàng
 
-const orderStatuses = ["cho-xac-nhan", "da-xac-nhan", "dang-giao", "da-giao", "da-huy"];
+const orderStatuses = [
+  "cho-xac-nhan",
+  "da-xac-nhan",
+  "dang-giao",
+  "da-giao",
+  "hoan-thanh",
+  "hoan-tra",
+  "da-huy",
+];
 
 export async function setOrderStatus(
   _prev: ActionState,
@@ -264,6 +385,7 @@ export async function setOrderStatus(
 
   const code = text(data, "code");
   const status = text(data, "status");
+  const reason = text(data, "reason").slice(0, 300);
 
   if (!orderStatuses.includes(status)) return err("Trạng thái không hợp lệ.");
 
@@ -298,9 +420,54 @@ export async function setOrderStatus(
     }
   }
 
-  updateRow("orders", code, { status });
+  /*
+    Hoàn trả bắt buộc có lý do. Khách xin hoàn trả thì lý do đã có sẵn trong
+    `returnRequest`; quản trị tự chuyển tay (hàng vỡ khi giao, sai địa chỉ) thì
+    phải gõ lý do. Không có lý do nghĩa là đơn mất tiền mà không ai biết vì sao.
+  */
+  /*
+    Giờ ĐỊA PHƯƠNG chứ không phải `toISOString()`: toISOString trả giờ UTC, và
+    một đơn xử lý lúc 18:14 sẽ được ghi 11:14 — sớm hơn lúc khách gửi yêu cầu,
+    trên cùng một trường. Cả dữ liệu mẫu đều dùng giờ địa phương.
+  */
+  const nowLocal = () => {
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  };
+
+  if (status === "hoan-tra") {
+    const pending = order.returnRequest;
+    const finalReason = pending && !pending.decision ? pending.reason : reason;
+    if (!finalReason) return err("Hoàn trả phải ghi rõ lý do.");
+    updateRow("orders", code, {
+      status,
+      returnRequest: {
+        ...pending,
+        reason: finalReason,
+        requestedAt: pending?.requestedAt ?? nowLocal(),
+        decision: "da-chap-nhan",
+        decidedAt: nowLocal(),
+      },
+    });
+  } else if (status === "da-giao" && order.returnRequest && !order.returnRequest.decision) {
+    // Giữ đơn ở "Đã giao" nghĩa là từ chối khiếu nại. Đánh dấu để đơn không bị
+    // coi là đang chờ xử lý mãi mãi.
+    updateRow("orders", code, {
+      status,
+      returnRequest: {
+        ...order.returnRequest,
+        decision: "tu-choi",
+        decidedAt: nowLocal(),
+      },
+    });
+  } else {
+    updateRow("orders", code, { status });
+  }
+
   revalidatePath("/admin/don-hang");
   revalidatePath("/tra-cuu-don-hang");
+  revalidatePath("/tai-khoan");
   return ok(`Đơn ${code}: ${status}.`);
 }
 
@@ -323,6 +490,19 @@ export async function saveCoupon(_prev: ActionState, data: FormData): Promise<Ac
   if (!description) return err("Thiếu mô tả — khách đọc câu này ở ô nhập mã.");
   if (kind !== "amount" && kind !== "freeship") return err("Loại giảm giá không hợp lệ.");
 
+  // Ngày dạng `YYYY-MM-DD` — so sánh chuỗi được, và đúng thứ ô `type="date"` gửi lên.
+  // Chuỗi rỗng chứ không phải `undefined` khi xoá ngày: `JSON.stringify` bỏ hẳn
+  // khoá `undefined`, nên nạp lại delta sẽ để ngày cũ sống sót.
+  const startAt = text(data, "startAt");
+  const endAt = text(data, "endAt");
+  const isDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if ((startAt && !isDate(startAt)) || (endAt && !isDate(endAt))) {
+    return err("Ngày không hợp lệ.");
+  }
+  if (startAt && endAt && endAt < startAt) {
+    return err("Ngày kết thúc phải sau ngày bắt đầu.");
+  }
+
   const existing = getRow("coupons", code);
 
   if (kind === "amount") {
@@ -332,11 +512,11 @@ export async function saveCoupon(_prev: ActionState, data: FormData): Promise<Ac
     if (amount >= minSubtotal && minSubtotal > 0) {
       return err("Số tiền giảm phải nhỏ hơn đơn tối thiểu, nếu không thì mọi đơn đủ điều kiện đều lỗ.");
     }
-    const patch = { code, kind, amount, minSubtotal, description };
+    const patch = { code, kind, amount, minSubtotal, description, startAt, endAt };
     if (existing) updateRow("coupons", code, patch);
     else addRow("coupons", patch);
   } else {
-    const patch = { code, kind: "freeship", minSubtotal, description };
+    const patch = { code, kind: "freeship", minSubtotal, description, startAt, endAt };
     if (existing) updateRow("coupons", code, patch);
     else addRow("coupons", patch);
   }
@@ -353,6 +533,82 @@ export async function deleteCoupon(_prev: ActionState, data: FormData): Promise<
   if (!removeRow("coupons", code)) return err("Không tìm thấy mã này.");
   revalidatePath("/admin/uu-dai");
   return ok(`Đã xoá mã ${code}.`);
+}
+
+// ----------------------------------------------------------------- Đánh giá
+
+/**
+ * Ẩn hoặc hiện lại một đánh giá trên trang sản phẩm.
+ *
+ * Ẩn chứ KHÔNG xoá: nội dung khách viết là bằng chứng khi có khiếu nại, còn một
+ * câu đánh giá có thể do khách gửi nhầm đơn hoặc do quản trị viên đọc sai lúc
+ * đầu. Xoá đi thì không lấy lại được.
+ */
+export async function setReviewHidden(
+  _prev: ActionState,
+  data: FormData,
+): Promise<ActionState> {
+  await requireRole("duoc-si", "ke-toan");
+
+  const id = text(data, "id");
+  const hidden = text(data, "hidden") === "1";
+  const row = getRow("reviews", id);
+  if (!row) return err("Không tìm thấy đánh giá này.");
+
+  updateRow("reviews", id, { hidden });
+  revalidatePath("/admin/danh-gia");
+  const product = getRow("products", String(row.productId));
+  if (product) revalidatePath(`/thuoc/${String(product.slug)}`);
+  return ok(hidden ? "Đã ẩn đánh giá." : "Đã hiện lại đánh giá.");
+}
+
+// ---------------------------------------------------------------- Bình luận
+
+/**
+ * Ẩn bình luận khỏi bài viết. Ẩn chứ không xoá — cùng lý do với đánh giá: nội
+ * dung khách viết còn đó để đối chiếu khi có khiếu nại.
+ */
+export async function setCommentHidden(
+  _prev: ActionState,
+  data: FormData,
+): Promise<ActionState> {
+  await requireRole("duoc-si", "ke-toan");
+
+  const id = text(data, "id");
+  const hidden = text(data, "hidden") === "1";
+  const row = getRow("comments", id);
+  if (!row) return err("Không tìm thấy bình luận này.");
+
+  updateRow("comments", id, { hidden });
+  revalidatePath(`/goc-suc-khoe/${String(row.articleSlug)}`);
+  revalidatePath("/admin/binh-luan");
+  return ok(hidden ? "Đã ẩn bình luận." : "Đã hiện lại bình luận.");
+}
+
+/**
+ * Trả lời một bình luận. Tên người trả lời lấy từ phiên đăng nhập, không phải từ
+ * form — người gửi không được tự nhận là dược sĩ trong câu trả lời.
+ */
+export async function replyToComment(
+  _prev: ActionState,
+  data: FormData,
+): Promise<ActionState> {
+  const session = await requireRole("duoc-si", "ke-toan");
+
+  const id = text(data, "id");
+  const body = text(data, "body").slice(0, 600);
+  const row = getRow("comments", id);
+  if (!row) return err("Không tìm thấy bình luận này.");
+  if (body.length < 10) return err("Câu trả lời cần ít nhất 10 ký tự.");
+
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  updateRow("comments", id, { reply: { body, author: session.name, date } });
+  revalidatePath(`/goc-suc-khoe/${String(row.articleSlug)}`);
+  revalidatePath("/admin/binh-luan");
+  return ok("Đã gửi trả lời.");
 }
 
 // -------------------------------------------------------- Bài viết & trang chữ
@@ -476,6 +732,123 @@ export async function deletePharmacy(_prev: ActionState, data: FormData): Promis
   revalidatePath("/admin/nha-thuoc");
   revalidatePath("/he-thong-nha-thuoc");
   return ok(`Đã xoá ${name}.`);
+}
+
+// ---------------------------------------------------------------- Khách hàng
+
+/**
+ * Xoá tài khoản khách.
+ *
+ * Không đụng tới đơn hàng: `orders` trong bản mẫu giữ SỐ ĐIỆN THOẠI chứ không
+ * giữ khoá tới `customers`, nên đơn cũ vẫn còn nguyên và vẫn đối soát được.
+ * Đúng ý định chứ không phải may mắn — hoá đơn không được biến mất theo tài
+ * khoản, cùng lý do với `reviews.order_code` dùng ON DELETE SET NULL trong lược
+ * đồ SQL.
+ *
+ * Không ai xoá được tài khoản của chính mình vì đây là tài khoản KHÁCH, tách hẳn
+ * khỏi `admin_users` — nhưng người vẫn đang đăng nhập bằng số đó thì phiên của
+ * họ chết ngay ở yêu cầu kế tiếp: `getCustomer()` tra lại kho mỗi lần, không tin
+ * vào cookie.
+ */
+export async function deleteCustomer(_prev: ActionState, data: FormData): Promise<ActionState> {
+  await requireRole("duoc-si");
+
+  const phone = text(data, "phone");
+  if (!removeRow("customers", phone)) return err("Không tìm thấy tài khoản này.");
+
+  revalidatePath("/admin/nguoi-dung");
+  return ok(`Đã xoá tài khoản ${phone}.`);
+}
+
+// ------------------------------------------------------------------ Danh mục
+
+/** Slug đã có chủ ở `/danh-muc/…`: bộ sưu tập ảo dùng chung đường dẫn với danh mục. */
+const reservedCategorySlugs = new Set(collections.map((collection) => collection.slug));
+
+/**
+ * Thêm hoặc sửa một danh mục.
+ *
+ * Đường dẫn KHÔNG đổi được sau khi tạo, cùng lý do với bài viết: `categorySlug`
+ * của mọi mặt hàng trỏ thẳng vào nó, đổi đường dẫn là cả danh mục rỗng ruột và
+ * mọi liên kết cũ thành 404. Muốn đổi tên đường dẫn thì tạo danh mục mới rồi
+ * chuyển mặt hàng sang.
+ *
+ * Hai ràng buộc của `aiHint` chép đúng từ lược đồ SQL: nhãn và địa chỉ hoặc cùng
+ * có hoặc cùng không, và địa chỉ phải trỏ vào một danh mục. Kiểm ở đây để người
+ * sửa nhận câu báo lỗi đọc được, thay vì lỗi ràng buộc của PostgreSQL sau này.
+ */
+export async function saveCategory(_prev: ActionState, data: FormData): Promise<ActionState> {
+  await requireRole("duoc-si", "ke-toan");
+
+  const slug = text(data, "slug");
+  const name = text(data, "name");
+  const shortName = text(data, "shortName");
+  const icon = text(data, "icon");
+
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    return err("Đường dẫn chỉ gồm chữ thường, số và gạch ngang.");
+  }
+  if (!name) return err("Thiếu tên danh mục.");
+  if (!shortName) return err("Thiếu tên ngắn — tên này hiện trong ô ở trang chủ.");
+  if (!isCategoryIcon(icon)) return err("Chọn một icon trong danh sách.");
+
+  // `/danh-muc/thuoc` và `/danh-muc/thuoc-khong-ke-don` đã là bộ sưu tập có thật.
+  // Danh mục thắng khi trùng slug, nên tạo trùng là đè mất trang đó.
+  if (reservedCategorySlugs.has(slug)) {
+    return err(`Đường dẫn "${slug}" đã dùng cho một bộ sưu tập. Chọn đường dẫn khác.`);
+  }
+
+  const hintMessage = text(data, "hintMessage");
+  const hintLabel = text(data, "hintLabel");
+  const hintHref = text(data, "hintHref");
+  if (Boolean(hintLabel) !== Boolean(hintHref)) {
+    return err("Gợi ý AI cần đủ cả nhãn nút và địa chỉ, hoặc để trống cả hai.");
+  }
+  if (hintHref && !/^\/danh-muc\/[a-z0-9-]+$/.test(hintHref)) {
+    return err("Địa chỉ của nút gợi ý phải có dạng /danh-muc/ten-danh-muc.");
+  }
+
+  const patch = {
+    slug,
+    name,
+    shortName,
+    icon,
+    description: text(data, "description"),
+    sortOrder: Number(text(data, "sortOrder")) || 0,
+    // Xoá hẳn khoá khi không có gợi ý: `Object.assign` không xoá được khoá, nên
+    // gán `undefined` sẽ để lại một `aiHint` rỗng và khối AI hiện dải trống.
+    aiHint: hintMessage
+      ? { message: hintMessage, ...(hintLabel ? { action: { label: hintLabel, href: hintHref } } : {}) }
+      : null,
+  };
+
+  if (getRow("categories", slug)) updateRow("categories", slug, patch);
+  else addRow("categories", patch);
+
+  revalidatePath("/admin/danh-muc");
+  revalidatePath("/");
+  revalidatePath(`/danh-muc/${slug}`);
+  return ok(`Đã lưu danh mục "${name}".`);
+}
+
+export async function deleteCategory(_prev: ActionState, data: FormData): Promise<ActionState> {
+  await requireRole("duoc-si");
+
+  const slug = text(data, "slug");
+  const inUse = (listRows("products") as unknown as Product[]).filter(
+    (product) => product.categorySlug === slug,
+  ).length;
+
+  // Xoá danh mục còn mặt hàng là bỏ rơi chúng: trang sản phẩm vẫn mở được nhưng
+  // không danh mục nào liệt kê chúng nữa, và không có màn hình nào báo điều đó.
+  if (inUse > 0) {
+    return err(`Danh mục còn ${inUse} mặt hàng. Chuyển chúng sang danh mục khác trước.`);
+  }
+  if (!removeRow("categories", slug)) return err("Không tìm thấy danh mục này.");
+
+  revalidatePath("/admin/danh-muc");
+  revalidatePath("/");
+  return ok("Đã xoá danh mục.");
 }
 
 // ------------------------------------------------------------------- Cài đặt

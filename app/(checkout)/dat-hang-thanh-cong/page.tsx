@@ -5,8 +5,10 @@ import { Check, Clock, Phone, ShieldCheck, Store, Truck } from "@/lib/icons";
 import { ButtonLink } from "@/components/ui/Button";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { getDeliveryMethod } from "@/lib/data/delivery";
+import { getOrderByCode } from "@/lib/data/orders";
 import { getPaymentMethod } from "@/lib/data/payment";
 import { site } from "@/lib/data/site";
+import { formatVnd } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Đặt hàng thành công",
@@ -28,8 +30,11 @@ export default async function OrderSuccessPage({
     Array.isArray(value) ? value[0] : value;
 
   const code = first(params.don);
-  const delivery = getDeliveryMethod(first(params.nhan));
-  const payment = getPaymentMethod(first(params.tt));
+  // Đơn vừa đặt có trong kho; mã lạ (link cũ, gõ tay) thì vẫn hiện trang và
+  // dùng hình thức gửi kèm URL — trang này không được 404 chỉ vì thiếu mã.
+  const order = code ? getOrderByCode(code) : undefined;
+  const delivery = order ? getDeliveryMethod(order.deliveryMethodId) : getDeliveryMethod(first(params.nhan));
+  const payment = order ? getPaymentMethod(order.paymentMethodId) : getPaymentMethod(first(params.tt));
   const pickup = delivery.id === "nhan-tai-nha-thuoc";
 
   return (
@@ -53,6 +58,13 @@ export default async function OrderSuccessPage({
             <p className="mt-5 inline-flex flex-col items-center gap-1 rounded-card bg-recessed px-5 py-3">
               <span className="text-label-sm text-ink-muted">Mã đơn hàng</span>
               <span className="text-headline-md text-trust-text">{code}</span>
+            </p>
+          ) : null}
+
+          {order ? (
+            <p className="mt-3 text-body-sm text-ink-muted">
+              {order.customer} · {order.items.length} sản phẩm ·{" "}
+              <span className="tabular-nums text-ink">{formatVnd(order.summary.total)}</span>
             </p>
           ) : null}
         </div>
