@@ -1,7 +1,8 @@
+import { nextBatch } from "@/lib/data/batches";
 import { getProductDetail } from "@/lib/data/product-details";
 import { getDefaultUnit } from "@/lib/data/products";
 import { dosageFormLabel } from "@/lib/filters";
-import { formatPricePerUnit, formatStock } from "@/lib/format";
+import { formatDate, formatPricePerUnit, formatStock } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
 /**
@@ -17,6 +18,8 @@ import type { Product } from "@/lib/types";
 export function infoRows(product: Product) {
   const detail = getProductDetail(product.id);
   const unit = getDefaultUnit(product);
+  // Hạn của lô khách SẼ nhận: lô còn hàng có hạn gần nhất, đúng thứ tự xuất kho.
+  const batch = nextBatch(product);
   const rows: { label: string; value: string }[] = [
     { label: "Danh mục", value: detail?.therapeuticGroup ?? "Đang cập nhật" },
     { label: "Dạng bào chế", value: dosageFormLabel(product.dosageForm) },
@@ -31,7 +34,18 @@ export function infoRows(product: Product) {
     { label: "Nhà sản xuất", value: detail?.manufacturer ?? product.brand },
     { label: "Nước sản xuất", value: product.origin },
     { label: "Số đăng ký lưu hành", value: detail?.registrationNumber ?? "Đang cập nhật" },
+    // Hai dòng khác nhau, không gộp: "hạn dùng" là hạn ghi trên tờ hướng dẫn
+    // (kể từ ngày sản xuất), còn hạn thật của hộp khách cầm là của LÔ. Người mua
+    // hỏi "còn hạn bao lâu" thì câu trả lời nằm ở dòng thứ hai.
     { label: "Hạn dùng", value: detail?.shelfLife ?? "Đang cập nhật" },
+    ...(batch
+      ? [
+          {
+            label: "Lô đang bán",
+            value: `${batch.lot} · hạn ${formatDate(batch.expiryDate)}`,
+          },
+        ]
+      : []),
     { label: "Bảo quản", value: detail?.storage ?? "Đang cập nhật" },
   ];
 

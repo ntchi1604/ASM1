@@ -105,7 +105,11 @@ export type MockOrder = {
   deliveryMethodId: DeliveryMethodId;
   paymentMethodId: PaymentMethodId;
   couponCode?: string;
-  /** Các trường dưới đây chỉ có ở đơn khách tự đặt; đơn mẫu cũ không có. */
+  /**
+   * Địa chỉ và email là BẢN CHỤP lúc đặt, không phải khoá tới sổ địa chỉ của
+   * khách: khách đổi nhà về sau không được viết lại đơn cũ. Đơn tạo trước khi
+   * có hai trường này để trống.
+   */
   email?: string;
   address?: string;
   note?: string;
@@ -174,6 +178,8 @@ export const mockOrders: MockOrder[] = [
     placedAt: "2026-09-15T22:07:00",
     status: "cho-xac-nhan",
     lines: [{ productId: "augmentin-625", unitLabel: "Vỉ", quantity: 2 }],
+    // Nhận tại nhà thuốc nên địa chỉ là địa chỉ nhà thuốc, không phải nhà riêng.
+    address: "Nhà thuốc MediVia 128 Nguyễn Thị Minh Khai, Quận 3, TP. Hồ Chí Minh",
     deliveryMethodId: "nhan-tai-nha-thuoc",
     paymentMethodId: "cod",
   },
@@ -187,6 +193,8 @@ export const mockOrders: MockOrder[] = [
       { productId: "augmentin-625", unitLabel: "Hộp", quantity: 1 },
       { productId: "prospan", unitLabel: "Chai", quantity: 2 },
     ],
+    email: "lan.nguyen@example.com",
+    address: "27/4 Lê Văn Sỹ, Phường 13, Quận 3, TP. Hồ Chí Minh",
     deliveryMethodId: "tieu-chuan",
     paymentMethodId: "momo",
     couponCode: "GIAM50K",
@@ -201,6 +209,8 @@ export const mockOrders: MockOrder[] = [
       { productId: "oresol-hydrite", unitLabel: "Hộp", quantity: 3 },
       { productId: "enterogermina", unitLabel: "Hộp", quantity: 1 },
     ],
+    email: "khoa.tran@example.com",
+    address: "152 Điện Biên Phủ, Phường 25, Bình Thạnh, TP. Hồ Chí Minh",
     deliveryMethodId: "nhanh",
     paymentMethodId: "cod",
   },
@@ -217,6 +227,8 @@ export const mockOrders: MockOrder[] = [
       { productId: "hapacol-650", unitLabel: "Hộp", quantity: 2 },
       { productId: "vitamin-c-1000", unitLabel: "Hộp", quantity: 1 },
     ],
+    email: "lan.nguyen@example.com",
+    address: "27/4 Lê Văn Sỹ, Phường 13, Quận 3, TP. Hồ Chí Minh",
     deliveryMethodId: "nhanh",
     paymentMethodId: "cod",
   },
@@ -230,6 +242,7 @@ export const mockOrders: MockOrder[] = [
       { productId: "panadol-extra", unitLabel: "Vỉ", quantity: 3 },
       { productId: "decolgen-nd", unitLabel: "Hộp", quantity: 1 },
     ],
+    address: "88 Pasteur, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
     deliveryMethodId: "tieu-chuan",
     paymentMethodId: "zalopay",
     couponCode: "FREESHIP",
@@ -244,6 +257,7 @@ export const mockOrders: MockOrder[] = [
       { productId: "tamiflu-75", unitLabel: "Hộp", quantity: 1 },
       { productId: "hapacol-150", unitLabel: "Hộp", quantity: 2 },
     ],
+    address: "12 Nguyễn Trãi, Phường 2, Quận 5, TP. Hồ Chí Minh",
     deliveryMethodId: "nhanh",
     paymentMethodId: "cod",
   },
@@ -258,6 +272,7 @@ export const mockOrders: MockOrder[] = [
       { productId: "efferalgan-500", unitLabel: "Hộp", quantity: 1 },
       { productId: "otrivin-005", unitLabel: "Lọ", quantity: 1 },
     ],
+    address: "Nhà thuốc MediVia 128 Nguyễn Thị Minh Khai, Quận 3, TP. Hồ Chí Minh",
     deliveryMethodId: "nhan-tai-nha-thuoc",
     paymentMethodId: "cod",
   },
@@ -344,6 +359,12 @@ export type PrescriptionRow = {
   orderCode: string;
   /** Tên tệp gốc. Ảnh nằm trong kho riêng, KHÔNG có URL công khai — xem chú thích dưới. */
   fileName: string;
+  /**
+   * Tên tệp trong `.data/prescriptions`, không phải URL. Chỉ đơn khách thật gửi
+   * mới có; bốn đơn mẫu không có tệp. Xoá về chuỗi rỗng khi ảnh đã bị xoá theo
+   * hạn — `fileName` ở lại làm dấu vết.
+   */
+  storageKey?: string;
   mimeType: "image/jpeg" | "image/png" | "application/pdf";
   sizeBytes: number;
   status: PrescriptionStatus;
@@ -358,9 +379,10 @@ export type PrescriptionRow = {
 };
 
 /**
- * Lý do từ chối. Bốn trường hợp này là đúng bốn trường hợp đã hứa với khách ở
- * trang Quy định bán thuốc kê đơn — dược sĩ chọn trong danh sách chứ không gõ
- * tự do, vì lý do từ chối là câu khách đọc để biết phải sửa gì.
+ * Lý do từ chối thường gặp — đúng bốn trường hợp đã hứa với khách ở trang Quy
+ * định bán thuốc kê đơn. Đây là lựa chọn mặc định của form, không phải danh sách
+ * đóng: dược sĩ vẫn tự viết được lý do khác, vì đơn thật không phải lúc nào cũng
+ * rơi vào một trong bốn ô.
  */
 export const prescriptionRejectReasons = [
   "Ảnh mờ, thiếu phần chẩn đoán hoặc thiếu chữ ký bác sĩ",
@@ -369,49 +391,19 @@ export const prescriptionRejectReasons = [
   "Thuốc trên đơn không khớp với thuốc trong giỏ",
 ];
 
-export const prescriptionRows: PrescriptionRow[] = [
-  {
-    orderCode: "MV15092814",
-    fileName: "don-thuoc-bao.jpg",
-    mimeType: "image/jpeg",
-    sizeBytes: 1_284_915,
-    status: "cho-duyet",
-    submittedAt: "2026-09-15T22:09:00",
-    deleteAfter: "2026-09-23",
-  },
-  {
-    orderCode: "MV15097390",
-    fileName: "don-thuoc-lan.pdf",
-    mimeType: "application/pdf",
-    sizeBytes: 842_176,
-    status: "cho-duyet",
-    submittedAt: "2026-09-15T20:44:00",
-    deleteAfter: "2026-09-25",
-  },
-  {
-    orderCode: "MV12093317",
-    fileName: "don-thuoc-hong.jpg",
-    mimeType: "image/jpeg",
-    sizeBytes: 2_105_733,
-    status: "da-duyet",
-    submittedAt: "2026-09-12T08:35:00",
-    reviewedBy: "DS. Trần Thu Hà",
-    reviewedAt: "2026-09-12T08:52:00",
-    deleteAfter: "2026-09-20",
-  },
-  {
-    orderCode: "MV12099043",
-    fileName: "don-thuoc-tung.png",
-    mimeType: "image/png",
-    sizeBytes: 3_918_442,
-    status: "tu-choi",
-    submittedAt: "2026-09-12T22:01:00",
-    rejectReason: prescriptionRejectReasons[1],
-    reviewedBy: "DS. Trần Thu Hà",
-    reviewedAt: "2026-09-12T22:14:00",
-    deleteAfter: "2026-09-19",
-  },
-];
+/**
+ * Hàng đợi đơn thuốc. BẮT ĐẦU RỖNG, và đó là chủ ý.
+ *
+ * Bốn dòng mẫu trước đây trỏ tới bốn đơn mẫu và không có tệp nào: dược sĩ mở hàng
+ * đợi thấy "Chờ duyệt" cho một tờ đơn không tồn tại, bấm vào không có ảnh, và
+ * duyệt xong thì chẳng có gì để duyệt. Một hàng đợi nói dối còn tệ hơn hàng đợi
+ * rỗng — đơn thật vào đây từ `placeOrder` (`app/(checkout)/thanh-toan/actions.ts`),
+ * kèm tệp thật, và mọi dòng đều mở ra xem được.
+ *
+ * Đây vẫn là mảng THẬT mà `lib/admin/db.ts` giữ tham chiếu: dòng khách gửi được
+ * push vào chính mảng này, nên trang quản trị thấy ngay mà không phải sửa gì.
+ */
+export const prescriptionRows: PrescriptionRow[] = [];
 
 /** Ảnh lớn nhất được nhận, khớp ràng buộc `size_bytes <= 10485760` của lược đồ. */
 export const prescriptionMaxBytes = 10_485_760;
@@ -440,10 +432,20 @@ for (const row of prescriptionRows) {
   }
 }
 
+/**
+ * Hàng đợi duyệt. Việc dọn ảnh quá hạn KHÔNG gọi ở đây: hàm này chạy cả trong
+ * `design/seed-postgres.mjs` và lúc build, mà dọn tệp thì chỉ nên xảy ra khi có
+ * người thật mở trang quản trị — xem `app/admin/duyet-don-thuoc/page.tsx`.
+ */
 export function getPrescriptionRows(): (PrescriptionRow & { order: ResolvedOrder })[] {
   return prescriptionRows.map((row) => {
     const order = getOrderByCode(row.orderCode);
     if (!order) throw new Error(`orders.ts: không tra được đơn ${row.orderCode}`);
     return { ...row, order };
   });
+}
+
+/** Đơn thuốc của một đơn hàng, nếu khách đã gửi — trang tra cứu dùng. */
+export function getPrescriptionByOrderCode(code: string): PrescriptionRow | undefined {
+  return prescriptionRows.find((row) => row.orderCode === code);
 }

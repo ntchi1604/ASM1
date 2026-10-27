@@ -78,7 +78,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
   // khác nhau nói về cùng một thứ.
   const visible = orders.filter(
     (order) =>
-      matchesQuery(filter.q, order.code, order.customer, order.phone) &&
+      matchesQuery(filter.q, order.code, order.customer, order.phone, order.address) &&
       (!filter["trang-thai"] || order.status === filter["trang-thai"]),
   );
 
@@ -109,7 +109,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
         <AdminFilterBar
           action="/admin/don-hang"
           query={filter.q}
-          placeholder="Mã đơn, tên khách hoặc số điện thoại"
+          placeholder="Mã đơn, tên khách, số điện thoại hoặc địa chỉ"
           selects={[
             {
               name: "trang-thai",
@@ -139,11 +139,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
             </p>
           ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] border-t border-hairline text-left">
+            <table className="w-full min-w-[1080px] border-t border-hairline text-left">
               <thead className="bg-recessed">
                 <tr>
                   <Th>Đơn</Th>
                   <Th>Khách</Th>
+                  <Th>Giao tới</Th>
                   <Th>Đặt lúc</Th>
                   <Th>Thuốc</Th>
                   <Th>Nhận hàng</Th>
@@ -177,6 +178,27 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
                       <span className="mt-0.5 block tabular-nums text-body-sm text-ink-subtle">
                         {order.phone}
                       </span>
+                      {order.email ? (
+                        <span className="mt-0.5 block text-body-sm text-ink-subtle">
+                          {order.email}
+                        </span>
+                      ) : null}
+                    </td>
+                    {/*
+                      Địa chỉ là BẢN CHỤP lúc đặt, không đọc lại từ sổ địa chỉ của
+                      khách: khách đổi nhà thì đơn cũ vẫn phải ghi nơi đã giao.
+                      Đơn mẫu cũ không có địa chỉ — ghi rõ "không ghi" thay vì để
+                      trống, vì ô trống trong bảng này đọc như lỗi tải dữ liệu.
+                    */}
+                    <td className="max-w-[15rem] px-4 py-3 text-body-sm text-ink-muted">
+                      {order.address ?? (
+                        <span className="text-ink-subtle">Đơn mẫu, không ghi địa chỉ</span>
+                      )}
+                      {order.note ? (
+                        <span className="mt-1 block text-body-sm text-ink-subtle">
+                          Ghi chú: {order.note}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-body-sm text-ink-muted">
                       {formatDateTime(order.placedAt)}

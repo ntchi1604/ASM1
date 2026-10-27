@@ -35,16 +35,20 @@ export function serializeCart(lines: CartLine[]): string {
 }
 
 /**
- * Chỉ giữ dòng còn bán được. Dòng trỏ tới sản phẩm đã xoá, đơn vị không còn,
- * thuốc kê đơn (không được nằm trong giỏ) hoặc số lượng vô lý đều bị bỏ — thà
- * mất một dòng còn hơn để trang giỏ vỡ vì dữ liệu cũ trong trình duyệt.
+ * Chỉ giữ dòng còn bán được. Dòng trỏ tới sản phẩm đã xoá, đơn vị không còn
+ * hoặc số lượng vô lý đều bị bỏ — thà mất một dòng còn hơn để trang giỏ vỡ vì
+ * dữ liệu cũ trong trình duyệt.
+ *
+ * Thuốc kê đơn ĐƯỢC nằm trong giỏ: chỗ chặn là bước thanh toán, nơi bắt buộc
+ * gửi ảnh đơn (`placeOrder`). Chặn ở đây thì khách không có đường nào cho thuốc
+ * kê đơn vào giỏ, nên cả luồng duyệt đơn phía sau thành giao diện trang trí.
  */
 export function normalizeLines(lines: CartLine[]): CartLine[] {
   const merged = new Map<string, CartLine>();
 
   for (const line of lines) {
     const product = getProductById(line.productId);
-    if (!product || product.prescriptionRequired || product.stock.total <= 0) continue;
+    if (!product || product.stock.total <= 0) continue;
 
     const unit = product.units.find((item) => item.label === line.unitLabel);
     if (!unit) continue;

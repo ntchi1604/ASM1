@@ -11,7 +11,8 @@ import { formatDate, formatPricePerUnit, formatVnd } from "@/lib/format";
 import { getDefaultUnit, products } from "@/lib/data/products";
 import { categories } from "@/lib/data/categories";
 import { daysOfStock, reportPeriod, resolveStockAlerts } from "@/lib/data/sales";
-import { addProduct, deleteProduct, saveProduct, saveStock } from "@/lib/admin/actions";
+import { addProduct, deleteProduct, saveBatches, saveProduct, saveStock } from "@/lib/admin/actions";
+import { daysUntil, expiryWarnDays, expiringBatches } from "@/lib/data/batches";
 import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
 import { matchesQuery, readFilter } from "@/lib/admin/filter";
 import { ProductThumb } from "@/components/product/ProductThumb";
@@ -119,6 +120,12 @@ export default async function AdminInventoryPage({
   const tracked = rows.filter((row) => row.days !== undefined);
   const soldOut = rows.filter((row) => row.product.stock.total <= 0);
   const lowStock = tracked.filter((row) => (row.days ?? 0) <= lowDays);
+  // Lô cận hạn tính trên CẢ danh mục, không theo bộ lọc: đây là số của cả kho.
+  const expiring = products
+    .flatMap((product) =>
+      expiringBatches(product).map((batch) => ({ product, ...batch })),
+    )
+    .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
 
   // Lọc trên `rows` đã sắp: bảng và danh sách sửa bên dưới dùng CHUNG kết quả
   // này, vì hai chỗ hiện cùng dữ liệu — lọc một chỗ mà chỗ kia vẫn đủ mặt hàng
@@ -156,7 +163,7 @@ export default async function AdminInventoryPage({
           </p>
         </header>
 
-        <section aria-label="Chỉ số kho" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <section aria-label="Chỉ số kho" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Mặt hàng đang theo dõi"
             value={`${tracked.length} / ${products.length}`}
@@ -174,6 +181,12 @@ export default async function AdminInventoryPage({
             value={`${soldOut.length} mặt hàng`}
             hint={soldOut.length > 0 ? "Đang chờ hàng về" : "Không có mặt hàng nào hết"}
             danger={soldOut.length > 0}
+          />
+          <StatCard
+            label="Lô cận hạn"
+            value={`${expiring.length} lô`}
+            hint={`Hạn trong ${expiryWarnDays} ngày tới`}
+            danger={expiring.some((entry) => daysUntil(entry.expiryDate) < 0)}
           />
         </section>
 
@@ -198,6 +211,40 @@ export default async function AdminInventoryPage({
                     ) : null}
                   </li>
                 ))}
+              </ul>
+            </div>
+          </Card>
+        ) : null}
+
+        {expiring.length > 0 ? (
+          <Card className="flex flex-wrap items-start gap-3 border-promo/30 bg-promo-wash p-4 md:p-5">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-promo-text" aria-hidden />
+            <div className="min-w-0">
+              <h2 className="text-headline-md text-promo-text">Lô cận hạn</h2>
+              <p className="mt-1 text-body-sm text-ink-muted">
+                Hạn dùng trong {expiryWarnDays} ngày tới. Lô hạn gần nhất được bán trước —
+                xem lại giá hoặc trả về nhà phân phối.
+              </p>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {expiring.map((entry) => {
+                  const days = daysUntil(entry.expiryDate);
+                  return (
+                    <li key={`${entry.product.id}-${entry.lot}`} className="text-body-sm text-ink-muted">
+                      <Link
+                        href={`/thuoc/${entry.product.slug}`}
+                        className="focus-ring rounded-chip text-label-md text-ink hover:text-trust-text"
+                      >
+                        {entry.product.name}
+                      </Link>
+                      <span className="ml-2 tabular-nums">
+                        lô {entry.lot} · {entry.quantity} · {formatDate(entry.expiryDate)}
+                      </span>
+                      <span className={days < 0 ? "ml-2 text-danger" : "ml-2 text-promo-text"}>
+                        {days < 0 ? `quá hạn ${-days} ngày` : `còn ${days} ngày`}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </Card>
@@ -260,6 +307,7 @@ export default async function AdminInventoryPage({
                   <Th align="right">Giá niêm yết</Th>
                   <Th align="right">Bán / ngày</Th>
                   <Th align="right">Còn bán được</Th>
+                  <Th>Lô · hạn dùng</Th>
                 </tr>
               </thead>
               <tbody>
@@ -314,6 +362,38 @@ export default async function AdminInventoryPage({
                         <span className="text-body-sm text-ink-subtle">Hết hàng</span>
                       ) : (
                         <span className="text-body-sm text-ink-subtle">Chưa đủ dữ liệu</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {product.stock.batches?.length ? (
+                        <ul className="flex flex-col gap-1">
+                          {[...product.stock.batches]
+                            .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate))
+                            .map((batch) => {
+                              const days = daysUntil(batch.expiryDate);
+                              return (
+                                <li key={batch.lot} className="whitespace-nowrap text-body-sm">
+                                  <span className="tabular-nums text-ink-muted">
+                                    {batch.lot}
+                                  </span>
+                                  <span className="text-ink-subtle"> × {batch.quantity} · </span>
+                                  <span
+                                    className={
+                                      days < 0
+                                        ? "tabular-nums text-danger"
+                                        : days <= expiryWarnDays
+                                          ? "tabular-nums text-promo-text"
+                                          : "tabular-nums text-ink-muted"
+                                    }
+                                  >
+                                    {formatDate(batch.expiryDate)}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                        </ul>
+                      ) : (
+                        <span className="text-body-sm text-ink-subtle">Chưa khai lô</span>
                       )}
                     </td>
                   </tr>
@@ -414,22 +494,39 @@ function StockEditor({
                     </span>
                   }
                 >
-                  <Field
-                    label={`Tồn kho (${unit.label.toLowerCase()})`}
-                    id={`total-${product.id}`}
-                    required
-                    hint="Số nguyên, không âm. Về 0 thì mặt hàng thành tạm hết."
-                  >
-                    <Input
+                  {product.stock.batches?.length ? (
+                    // Đã khai lô thì tồn kho là tổng của các lô — ô nhập tay chỉ
+                    // để đọc, sửa ở khối "Lô và hạn dùng" bên dưới.
+                    <Field
+                      label={`Tồn kho (${unit.label.toLowerCase()})`}
                       id={`total-${product.id}`}
-                      name="total"
-                      type="number"
-                      min={0}
-                      step={1}
+                      hint="Tổng của các lô bên dưới. Sửa số lượng từng lô để đổi."
+                    >
+                      <Input
+                        id={`total-${product.id}`}
+                        value={product.stock.total.toLocaleString("vi-VN")}
+                        readOnly
+                        className="bg-recessed"
+                      />
+                    </Field>
+                  ) : (
+                    <Field
+                      label={`Tồn kho (${unit.label.toLowerCase()})`}
+                      id={`total-${product.id}`}
                       required
-                      defaultValue={product.stock.total}
-                    />
-                  </Field>
+                      hint="Số nguyên, không âm. Về 0 thì mặt hàng thành tạm hết."
+                    >
+                      <Input
+                        id={`total-${product.id}`}
+                        name="total"
+                        type="number"
+                        min={0}
+                        step={1}
+                        required
+                        defaultValue={product.stock.total}
+                      />
+                    </Field>
+                  )}
 
                   <Field
                     label="Nhà thuốc gần bạn còn hàng"
@@ -480,6 +577,8 @@ function StockEditor({
                   ) : null}
                 </AdminForm>
 
+                <BatchForm product={product} unit={unit.label} />
+
                 <div className="mt-5 border-t border-hairline pt-4">
                   <h3 className="text-label-md text-ink">Thuộc tính mặt hàng</h3>
                   <p className="mt-1 mb-3 max-w-2xl text-body-sm text-ink-muted">
@@ -511,6 +610,96 @@ function StockEditor({
         ))}
       </ul>
     </Card>
+  );
+}
+
+/**
+ * Lô và hạn dùng.
+ *
+ * Một mặt hàng nhập nhiều đợt thì mỗi đợt một lô, mỗi lô một hạn riêng — hạn
+ * dùng không phải thuộc tính của mặt hàng. Tồn kho hiển thị ở trên là TỔNG của
+ * các lô, nên sửa số lượng ở đây là sửa tồn kho; form này không nhận `total`.
+ *
+ * Luôn có sẵn ô trống để nhập lô mới thay vì nút "thêm dòng": nút đó cần
+ * JavaScript, còn ba ô trống thì không. Dòng nào bỏ trống cả ba thì bị bỏ qua.
+ */
+function BatchForm({ product, unit }: { product: Product; unit: string }) {
+  const batches = product.stock.batches ?? [];
+  const blank = Math.max(1, 3 - batches.length);
+  const rows: (typeof batches)[number][] = [
+    ...batches,
+    ...Array.from({ length: blank }, () => ({ lot: "", quantity: 0, expiryDate: "" })),
+  ];
+
+  return (
+    <div className="mt-5 border-t border-hairline pt-4">
+      <h3 className="text-label-md text-ink">Lô và hạn dùng</h3>
+      <p className="mt-1 mb-3 max-w-2xl text-body-sm text-ink-muted">
+        Mỗi đợt nhập một dòng. Số lượng tính theo {unit.toLowerCase()}, cộng dồn thành
+        tồn kho. Lô hết hạn trước được bán trước.
+      </p>
+
+      <AdminForm
+        action={saveBatches}
+        hidden={{ id: product.id }}
+        submit="Lưu lô"
+        footer={
+          <span className="text-body-sm text-ink-subtle">
+            {batches.length
+              ? `${batches.length} lô · hạn gần nhất ${formatDate(batches.map((b) => b.expiryDate).sort()[0])}`
+              : "Chưa khai lô — tồn kho đang nhập tay ở form trên."}
+          </span>
+        }
+      >
+        <div className="md:col-span-2">
+          <div className="flex flex-col gap-2">
+            {rows.map((batch, index) => {
+              const days = batch.expiryDate ? daysUntil(batch.expiryDate) : undefined;
+              return (
+                <div
+                  key={index}
+                  className="grid grid-cols-[1fr_6.5rem_9.5rem] items-center gap-2"
+                >
+                  <Input
+                    aria-label={`Mã lô ${index + 1}`}
+                    name="lot"
+                    placeholder="Mã lô"
+                    defaultValue={batch.lot}
+                    autoComplete="off"
+                  />
+                  <Input
+                    aria-label={`Số lượng lô ${index + 1}`}
+                    name="quantity"
+                    type="number"
+                    min={0}
+                    step={1}
+                    placeholder={unit.toLowerCase()}
+                    defaultValue={batch.lot ? batch.quantity : ""}
+                  />
+                  <Input
+                    aria-label={`Hạn dùng lô ${index + 1}`}
+                    name="expiryDate"
+                    type="date"
+                    defaultValue={batch.expiryDate}
+                    className={
+                      days !== undefined && days < 0
+                        ? "border-danger text-danger"
+                        : days !== undefined && days <= expiryWarnDays
+                          ? "border-promo text-promo-text"
+                          : undefined
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-body-sm text-ink-subtle">
+            Để trống mã lô là bỏ dòng đó — đây cũng là cách xoá một lô khỏi sổ. Lô
+            có số lượng 0 vẫn được giữ để đối chiếu với giấy tờ nhập.
+          </p>
+        </div>
+      </AdminForm>
+    </div>
   );
 }
 

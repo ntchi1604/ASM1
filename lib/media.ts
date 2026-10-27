@@ -53,12 +53,24 @@ function sniffType(head: Uint8Array): string | undefined {
   if (at(0, 0xff, 0xd8, 0xff)) return "jpg";
   if (at(0, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return "png";
   if (at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50)) return "webp";
+  if (at(0, 0x25, 0x50, 0x44, 0x46, 0x2d)) return "pdf"; // "%PDF-"
   if (at(4, 0x66, 0x74, 0x79, 0x70)) return "mp4"; // hộp "ftyp" của MP4/MOV
   if (at(0, 0x1a, 0x45, 0xdf, 0xa3)) return "webm";
   return undefined;
 }
 
-async function saveOne(file: File, allowed: Set<string>): Promise<string | undefined> {
+/**
+ * Ghi một tệp vào `dir` và trả tên đã sinh.
+ *
+ * `dir` là tham số chứ không phải hằng số trong module: ảnh đơn thuốc phải nằm ở
+ * thư mục KHÔNG được `/api/media` phục vụ — cùng một hàm ghi, hai kho khác nhau.
+ * `pdf` chỉ có mặt ở kho đơn thuốc; bộ đuôi của kho công khai không có nó.
+ */
+export async function saveOne(
+  file: File,
+  allowed: Set<string>,
+  dir: string = uploadsDir,
+): Promise<string | undefined> {
   const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   const ext = sniffType(head);
   if (!ext || !allowed.has(ext)) return undefined;
@@ -68,8 +80,8 @@ async function saveOne(file: File, allowed: Set<string>): Promise<string | undef
   // lần thay ảnh sinh một URL mới, nên bộ nhớ đệm của `next/image` không trả
   // ảnh cũ cho ảnh vừa thay.
   const name = `${crypto.randomUUID()}.${ext}`;
-  await mkdir(uploadsDir, { recursive: true });
-  await writeFile(join(uploadsDir, name), new Uint8Array(await file.arrayBuffer()));
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, name), new Uint8Array(await file.arrayBuffer()));
   return name;
 }
 

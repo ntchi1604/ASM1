@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, Delete } from "@/lib/icons";
 import { formatVnd } from "@/lib/format";
+import { Badge } from "@/components/ui/Badge";
 import { ProductThumb } from "@/components/product/ProductThumb";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { StockStatus } from "@/components/ui/StockStatus";
@@ -45,6 +46,18 @@ export function CartLineRow({
           </Link>
           <p className="mt-0.5 text-body-sm text-ink-muted">{product.activeIngredient}</p>
           <p className="mt-0.5 text-body-sm text-ink-subtle">Đơn vị: {unit.label}</p>
+
+          {/* Thuốc kê đơn nằm trong giỏ được, nhưng chưa được soạn. Nói ngay ở
+              dòng hàng thay vì để tới bước thanh toán mới báo — khách phải biết
+              mình sắp phải chuẩn bị ảnh đơn. */}
+          {product.prescriptionRequired ? (
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Badge tone="prescription">Kê đơn</Badge>
+              <span className="text-body-sm text-ink-subtle">
+                Cần ảnh đơn ở bước thanh toán
+              </span>
+            </p>
+          ) : null}
           <StockStatus
             total={product.stock.total}
             nearbyPharmacies={product.stock.nearbyPharmacies}

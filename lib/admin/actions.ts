@@ -24,7 +24,8 @@ import {
   sessionCookie,
   sessionCookieName,
 } from "@/lib/admin/auth";
-import type { CartLine, Product, ProductUnit, UnitLabel } from "@/lib/types";
+import { batchTotal } from "@/lib/data/batches";
+import type { CartLine, Product, ProductUnit, StockBatch, UnitLabel } from "@/lib/types";
 
 /**
  * Mọi thao tác ghi của phần quản trị.
@@ -104,7 +105,10 @@ export async function saveStock(_prev: ActionState, data: FormData): Promise<Act
   const product = getRow("products", id) as unknown as Product | undefined;
   if (!product) return err("Không tìm thấy mặt hàng này.");
 
-  const total = Number(text(data, "total"));
+  // Mặt hàng đã khai lô thì tồn kho là TỔNG của các lô, không nhập tay được —
+  // sửa tay ở đây là hai con số cùng nói một chuyện và chúng sẽ lệch nhau.
+  const hasBatches = Boolean(product.stock.batches?.length);
+  const total = hasBatches ? batchTotal(product.stock.batches!) : Number(text(data, "total"));
   if (!Number.isInteger(total) || total < 0) {
     return err("Tồn kho phải là số nguyên không âm.");
   }
@@ -149,6 +153,69 @@ export async function saveStock(_prev: ActionState, data: FormData): Promise<Act
   revalidatePath("/danh-muc", "layout");
 
   return ok(`Đã lưu ${product.name}.`);
+}
+
+/**
+ * Ghi lại danh sách lô của một mặt hàng.
+ *
+ * `total` suy ra từ tổng số lượng các lô, KHÔNG nhận từ form: hai con số cùng nói
+ * một chuyện mà nhập riêng thì sớm muộn cũng lệch, và lệch theo hướng "bán được
+ * nhiều hơn số đang có" là hướng nguy hiểm.
+ *
+ * Form gửi ba mảng song song (`lot`, `quantity`, `expiryDate`) vì `FormData`
+ * không có khái niệm mảng lồng. Dòng nào thiếu cả ba thì bỏ — đó là dòng trống
+ * cuối biểu mẫu, không phải lô khai thiếu.
+ */
+export async function saveBatches(_prev: ActionState, data: FormData): Promise<ActionState> {
+  await requireRole("duoc-si", "ke-toan");
+
+  const id = text(data, "id");
+  const product = getRow("products", id) as unknown as Product | undefined;
+  if (!product) return err("Không tìm thấy mặt hàng này.");
+
+  const lots = data.getAll("lot").map(String);
+  const quantities = data.getAll("quantity").map(String);
+  const expiries = data.getAll("expiryDate").map(String);
+  const batches: StockBatch[] = [];
+
+  for (const [index, rawLot] of lots.entries()) {
+    const lot = rawLot.trim();
+    const rawQuantity = (quantities[index] ?? "").trim();
+    const expiryDate = (expiries[index] ?? "").trim();
+    // Không có mã lô nghĩa là dòng trống hoặc dòng đã bị xoá — bỏ qua, không
+    // báo lỗi. Mã lô là phần khoá của lô nên không có nó thì không có gì để lưu.
+    if (!lot) continue;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate) || Number.isNaN(Date.parse(expiryDate))) {
+      return err(`Lô ${lot}: hạn dùng phải có dạng yyyy-mm-dd.`);
+    }
+    const quantity = Number(rawQuantity);
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      return err(`Lô ${lot}: số lượng phải là số nguyên không âm.`);
+    }
+    if (batches.some((batch) => batch.lot === lot)) {
+      return err(`Mã lô "${lot}" bị lặp — mỗi lô một mã.`);
+    }
+    batches.push({ lot, quantity, expiryDate });
+  }
+
+  const total = batches.reduce((sum, batch) => sum + batch.quantity, 0);
+
+  // Hết hàng thì `restockDate` mới có nghĩa; còn hàng mà giữ ngày cũ thì trang
+  // sản phẩm mời chờ một mặt hàng đang bán được.
+  const { restockDate, ...rest } = product.stock;
+  updateRow("products", id, {
+    stock: { ...rest, total, batches, ...(total > 0 ? {} : { restockDate }) },
+  });
+  revalidatePath("/admin/kho-thuoc");
+  revalidatePath(`/thuoc/${product.slug}`);
+  revalidatePath("/");
+  revalidatePath("/danh-muc", "layout");
+
+  return ok(
+    batches.length
+      ? `Đã lưu ${batches.length} lô cho ${product.name}, tổng ${total.toLocaleString("vi-VN")}.`
+      : `Đã xoá hạn dùng của ${product.name} — tồn kho về 0.`,
+  );
 }
 
 // ------------------------------------------------------------------ Mặt hàng
@@ -323,8 +390,13 @@ export async function deleteProduct(_prev: ActionState, data: FormData): Promise
  * không được tự khai mình là ai, nếu không thì nhật ký duyệt đơn thuốc — thứ để
  * truy trách nhiệm chuyên môn — trở thành ô chữ ai điền cũng được.
  *
- * Từ chối bắt buộc có lý do, và lý do phải nằm trong danh sách có sẵn: khách đọc
- * câu đó để biết cần sửa gì, còn câu gõ tự do thì mỗi dược sĩ viết một kiểu.
+ * Từ chối bắt buộc có lý do. Hai nguồn: câu có sẵn hoặc câu dược sĩ tự viết — lý
+ * do tự viết thắng. Bốn câu có sẵn phủ được bốn trường hợp thường gặp chứ không
+ * phủ hết đơn thật, và ép chọn câu gần đúng nhất thì khách đọc một lý do không
+ * phải lý do của mình.
+ *
+ * Cắt 255 ký tự: `reject_reason` trong lược đồ là `varchar(255)`, còn lý do này
+ * còn dài hơn thì lúc nối cơ sở dữ liệu thật sẽ cụt giữa từ ngay ở tầng SQL.
  */
 export async function reviewPrescription(
   _prev: ActionState,
@@ -334,7 +406,7 @@ export async function reviewPrescription(
 
   const orderCode = text(data, "orderCode");
   const decision = text(data, "decision");
-  const reason = text(data, "rejectReason");
+  const reason = (text(data, "rejectReasonKhac") || text(data, "rejectReason")).slice(0, 255);
 
   const row = getRow("prescriptions", orderCode);
   if (!row) return err("Không tìm thấy đơn thuốc này.");
@@ -411,8 +483,12 @@ export async function setOrderStatus(
     Đơn có thuốc kê đơn mà KHÔNG có dòng đơn thuốc nào cũng bị chặn: khách chưa
     gửi đơn thì càng không được soạn hàng.
   */
-  if (order.requiresPrescription && status !== "cho-xac-nhan" && status !== "da-huy") {
-    const prescription = getRow("prescriptions", code);
+  const prescription = getRow("prescriptions", code);
+  if (
+    (order.requiresPrescription || prescription) &&
+    status !== "cho-xac-nhan" &&
+    status !== "da-huy"
+  ) {
     if (prescription?.status !== "da-duyet") {
       return err(
         `${code} có thuốc kê đơn chưa duyệt. Duyệt đơn thuốc trước, hoặc huỷ đơn.`,
@@ -463,6 +539,18 @@ export async function setOrderStatus(
     });
   } else {
     updateRow("orders", code, { status });
+  }
+
+  /*
+    Đơn đóng (hoàn thành hoặc huỷ) là lúc ảnh đơn thuốc hết mục đích. Đặt
+    `deleteAfter` về HÔM NAY chứ không phải xoá ngay: lần mở trang duyệt kế tiếp
+    sẽ dọn tệp, và dòng vẫn còn nguyên `fileName` + người duyệt làm hồ sơ.
+  */
+  if ((status === "hoan-thanh" || status === "da-huy") && prescription?.storageKey) {
+    updateRow("prescriptions", code, {
+      deleteAfter: nowLocal().slice(0, 10),
+    });
+    revalidatePath("/admin/duyet-don-thuoc");
   }
 
   revalidatePath("/admin/don-hang");

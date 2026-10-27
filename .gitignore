@@ -48,3 +48,9 @@ design/_*.txt
 # commit no len thi nguoi clone ve se thay cac mon do nguoi khac them, va tep
 # delta chi co nghia voi dung cay ma nguon da sinh ra no.
 /.data/
+
+# Tep cua tro ly AI trong may, khong phai ma nguon cua du an.
+# `next dev` tu sinh lai CLAUDE.md moi lan chay — xem
+# node_modules/next/dist/server/lib/generate-agent-files.js
+/CLAUDE.md
+/.claude/

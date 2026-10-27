@@ -111,7 +111,9 @@ export default async function CheckoutPage({
           >
             {error === "ma-don"
               ? "Không tạo được mã đơn, vui lòng thử lại."
-              : "Thông tin nhận hàng chưa hợp lệ. Kiểm tra họ tên, số điện thoại và địa chỉ."}
+              : error === "don-thuoc"
+                ? "Đơn có thuốc kê đơn nên cần ảnh đơn của bác sĩ: tệp JPG, PNG hoặc PDF dưới 10 MB. Chọn lại tệp rồi đặt hàng."
+                : "Thông tin nhận hàng chưa hợp lệ. Kiểm tra họ tên, số điện thoại và địa chỉ."}
           </p>
         ) : null}
 

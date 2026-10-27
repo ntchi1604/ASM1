@@ -41,6 +41,23 @@ export function formatStock(
 }
 
 /**
+ * Dung lượng tệp: "1,2 MB".
+ *
+ * Chia cho 1.048.576 (MiB) chứ không phải 1.000.000: hạn mức của lược đồ là
+ * 10.485.760 byte, và mọi câu đã hứa với khách đều ghi "dưới 10 MB". Chia theo
+ * hệ thập phân thì chính dòng hạn mức hiện "10,5 MB" — trông như hệ thống cho
+ * phép nhiều hơn mức nó thực sự nhận.
+ */
+export function formatFileSize(bytes: number): string {
+  // Dưới 1 MB thì đổi đơn vị: "0 MB" cho một tệp 81 byte là câu trả lời sai cho
+  // câu hỏi "khách gửi tệp gì", và cũng giấu mất trường hợp tệp rỗng.
+  if (bytes < 1_048_576) {
+    return `${Math.max(1, Math.round(bytes / 1024)).toLocaleString("vi-VN")} KB`;
+  }
+  return `${(bytes / 1_048_576).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} MB`;
+}
+
+/**
  * Ngày tháng kiểu Việt: 16/09/2026
  * Nhận cả chuỗi ISO ("2026-09-12") vì dữ liệu từ API luôn về dạng chuỗi.
  */

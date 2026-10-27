@@ -13,7 +13,7 @@ Website nhà thuốc trực tuyến, mô phỏng mô hình [nhathuoclongchau.com
 | Sản phẩm mẫu | 24 sản phẩm · 12 danh mục · 3 thuốc kê đơn · 6 thực phẩm bổ sung                        |
 | Tính năng AI  | **9** (6 trang riêng + 3 tính năng gắn trong trang bán hàng)                           |
 | Component       | 67 file,**140 file TS/TSX**, ~17.900 dòng                                                   |
-| Cơ sở dữ liệu  | **Thiết kế xong, chưa dựng** — 39 bảng + 2 view, xem mục 9. Quản trị ghi vào tệp delta `.data/medivia.json` |
+| Cơ sở dữ liệu  | **Thiết kế xong, chưa dựng** — 40 bảng + 2 view, xem mục 9. Quản trị ghi vào tệp delta `.data/medivia.json` |
 | Thiết kế      | 12 màn hình phác thảo trước, rồi hiện thực lại bằng code                              |
 | Trạng thái AI | **Mock** — dữ liệu mẫu viết tay, kiến trúc đã sẵn sàng thay bằng mô hình thật |
 
@@ -405,7 +405,7 @@ Một hệ thống gợi ý thuốc cảm cho người đang đau ngực là h�
 
 ### 9.3 Cơ sở dữ liệu
 
-**39 bảng + 2 view**, PostgreSQL 16. Nhóm theo bốn khối: danh mục hàng hoá · bán hàng · AI · nội dung và tổng hợp. Sơ đồ quan hệ và từ điển dữ liệu đầy đủ nằm trong tệp lược đồ; ở đây nêu **năm quyết định lược đồ**, vì chúng là phần đáng bảo vệ:
+**40 bảng + 2 view**, PostgreSQL 16. Nhóm theo bốn khối: danh mục hàng hoá · bán hàng · AI · nội dung và tổng hợp. Sơ đồ quan hệ và từ điển dữ liệu đầy đủ nằm trong tệp lược đồ; ở đây nêu **năm quyết định lược đồ**, vì chúng là phần đáng bảo vệ:
 
 **a) Giá thuộc về ĐƠN VỊ BÁN, không thuộc về sản phẩm.** Hapacol 650 bán theo Hộp 78.000 ₫, theo Vỉ 21.000 ₫, theo Viên 5.500 ₫. Nếu giá nằm ở bảng `products` thì lần đổi giá đầu tiên sẽ viết lại toàn bộ hoá đơn cũ. Và `order_items` chép lại `unit_price` tại thời điểm mua thay vì đọc từ `product_units`.
 
@@ -473,7 +473,7 @@ Phần còn lại **không làm trang vỡ**, nên không cổng kiểm tra tự
 Hai lỗi AI là loại khó thấy nhất trong nhóm này: trang vẫn trả 200, vẫn hiện đủ nội dung, không ngoại lệ nào ném ra — chỉ có câu trả lời sai. Chúng chỉ lộ ra khi **đọc lại mã để đối chiếu với chính báo cáo này** (mục 9.2 vẽ nhánh cờ đỏ, mã không có) chứ không phải khi chạy thử. Từ đó mới thêm cổng `design/check-ai.mjs` kiểm hai chiều: câu nguy hiểm phải chặn, câu thường vẫn phải ra thuốc.
 
 **"Cơ sở dữ liệu đâu?"**
-Chưa dựng. Dữ liệu nền nằm trong 18 tệp TypeScript; quản trị ghi vào tệp delta `.data/medivia.json`. Nhưng lược đồ đã thiết kế xong: **39 bảng + 2 view**, và mọi bảng đều suy ra từ một kiểu dữ liệu có thật trong mã, không có bảng nào thêm vào cho oai. Tệp `design/medivia-schema.sql` chạy được, và `design/check-schema.mjs` tự kiểm nó (khoá ngoại trỏ bảng không có, ràng buộc trùng tên, số bảng khớp tài liệu).
+Chưa dựng. Dữ liệu nền nằm trong 18 tệp TypeScript; quản trị ghi vào tệp delta `.data/medivia.json`. Nhưng lược đồ đã thiết kế xong: **40 bảng + 2 view**, và mọi bảng đều suy ra từ một kiểu dữ liệu có thật trong mã, không có bảng nào thêm vào cho oai. Tệp `design/medivia-schema.sql` chạy được, và `design/check-schema.mjs` tự kiểm nó (khoá ngoại trỏ bảng không có, ràng buộc trùng tên, số bảng khớp tài liệu).
 
 Lý do thiết kế trước khi dựng: **kiểu dữ liệu đúng quan trọng hơn máy chủ chạy được.** Ba quyết định ở mục 9.3 — giá thuộc về đơn vị bán, tương tác khoá theo hoạt chất, ảnh đơn có hạn xoá — là những thứ nếu chọn sai từ đầu thì sửa lại phải đụng vào toàn bộ giao diện.
 

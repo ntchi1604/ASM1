@@ -97,5 +97,5 @@ export const aiDisclaimer =
   "Nội dung do AI tổng hợp, không chẩn đoán và không thay thế chỉ định của bác sĩ hoặc dược sĩ.";
 
 /** Ghi chú cạnh giá thuốc kê đơn. */
-export const prescriptionPriceNote = "Cần tư vấn trước khi bán";
+export const prescriptionPriceNote = "Bán theo đơn bác sĩ";
 

@@ -377,7 +377,7 @@ export const staticPages: StaticPage[] = [
         title: "Vì sao phải có đơn bác sĩ",
         body: [
           "Thuốc kê đơn chỉ an toàn khi dùng đúng chỉ định, đúng liều và đúng thời gian. Bán không đơn là để người dùng tự đoán bệnh và tự chọn liều — chính là cách kháng sinh mất tác dụng và các tương tác nguy hiểm xảy ra.",
-          "Vì vậy thuốc thuộc nhóm này mang nhãn đỏ trên MediVia và không có nút thêm vào giỏ.",
+          "Vì vậy thuốc thuộc nhóm này mang nhãn đỏ trên MediVia. Chúng vẫn thêm được vào giỏ như thuốc thường, nhưng đơn không rời khỏi bước xác nhận cho tới khi dược sĩ duyệt ảnh đơn của bác sĩ.",
         ],
       },
       {
@@ -386,16 +386,14 @@ export const staticPages: StaticPage[] = [
           "Chọn thuốc như bình thường — đơn sẽ đánh dấu là cần đơn bác sĩ.",
           "Tới bước thanh toán, tải ảnh đơn thuốc do bác sĩ kê. Nhận JPG, PNG hoặc PDF dưới 10 MB.",
           "Dược sĩ gọi xác nhận trong khoảng 15 phút. Đơn chỉ được soạn sau khi xác nhận xong.",
-          "Ảnh đơn không được lưu trong đường dẫn trang và bị xoá sau khi đơn hoàn tất.",
+          "Ảnh đơn nằm trong kho riêng, chỉ dược sĩ duyệt đơn mở được, và bị xoá sau khi đơn hoàn tất.",
         ],
       },
       {
         title: "Đơn bị từ chối khi nào",
-        list: [
-          "Ảnh mờ, thiếu phần chẩn đoán hoặc thiếu chữ ký bác sĩ.",
-          "Đơn đã quá hạn sử dụng theo ghi chú trên đơn.",
-          "Số lượng thuốc trên đơn ít hơn số lượng đặt.",
-          "Thuốc trên đơn không khớp với thuốc trong giỏ.",
+        body: [
+          "Bốn trường hợp thường gặp nhất là: ảnh mờ, thiếu phần chẩn đoán hoặc thiếu chữ ký bác sĩ; đơn đã quá hạn sử dụng theo ghi chú trên đơn; số lượng thuốc trên đơn ít hơn số lượng đặt; thuốc trên đơn không khớp với thuốc trong giỏ.",
+          "Dược sĩ ghi lý do ngay trên đơn, và lý do hiện nguyên văn khi bạn tra cứu đơn hàng — không phải câu chung chung. Có lý do rồi thì gửi lại ảnh đơn đã sửa hoặc gọi tổng đài.",
         ],
       },
       {

@@ -2,8 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { addRow } from "@/lib/admin/db";
+import { getCartItems } from "@/lib/data/cart";
 import { couponState, getCoupon } from "@/lib/data/coupons";
 import { getDeliveryMethod, type DeliveryMethodId } from "@/lib/data/delivery";
+import {
+  removePrescription,
+  savePrescription,
+  type SavedPrescription,
+} from "@/lib/prescriptions";
 import type { MockOrder } from "@/lib/data/orders";
 import { getPaymentMethod, type PaymentMethodId } from "@/lib/data/payment";
 import { clearCart } from "@/lib/shop/cart-actions";
@@ -54,6 +60,23 @@ export async function placeOrder(data: FormData) {
   const lines = await readCartLines();
   if (lines.length === 0) redirect("/thanh-toan");
 
+  /*
+    Ảnh đơn thuốc phải lưu TRƯỚC khi đơn được ghi: `prescriptions` là bảng con của
+    `orders`, và một đơn có thuốc kê đơn mà thiếu đơn thuốc thì kẹt vĩnh viễn ở
+    "chờ xác nhận" — `setOrderStatus` chặn đúng như vậy. Tệp lưu xong mà đơn không
+    ghi được thì xoá tệp, để kho không đầy ảnh mồ côi của những đơn chưa từng tồn tại.
+  */
+  const needsPrescription = getCartItems(lines).some(
+    (item) => item.product.prescriptionRequired,
+  );
+  let prescription: SavedPrescription | undefined;
+  if (needsPrescription) {
+    const file = data.get("donThuoc");
+    if (!(file instanceof File)) redirect("/thanh-toan?loi=don-thuoc");
+    prescription = await savePrescription(file);
+    if (!prescription) redirect("/thanh-toan?loi=don-thuoc");
+  }
+
   const delivery = getDeliveryMethod(text("nhan"));
   const payment = getPaymentMethod(text("tt"));
 
@@ -74,7 +97,26 @@ export async function placeOrder(data: FormData) {
   };
 
   const saved = persistOrder(order);
-  if (!saved) redirect("/thanh-toan?loi=ma-don");
+  if (!saved) {
+    if (prescription) await removePrescription(prescription.storageKey);
+    redirect("/thanh-toan?loi=ma-don");
+  }
+
+  // Đơn đã có mã; giờ mới gắn đơn thuốc vào đúng đơn đó. `addRow` từ chối mã
+  // trùng nên nó không thể ghi đè đơn thuốc của người khác.
+  if (prescription) {
+    addRow("prescriptions", {
+      orderCode: saved.code,
+      fileName: prescription.fileName,
+      storageKey: prescription.storageKey,
+      mimeType: prescription.mimeType,
+      sizeBytes: prescription.sizeBytes,
+      // Lược đồ: `status` mặc định là `cho-duyet`, và mọi đơn mới đều bắt đầu ở đây.
+      status: "cho-duyet",
+      submittedAt: localStamp(),
+      deleteAfter: dateAfter(30),
+    });
+  }
 
   // Ô "Lưu làm địa chỉ mặc định" trước đây chỉ trang trí: tích hay không tích
   // cũng không có gì được lưu. Ghi sau khi đơn đã tạo xong để một địa chỉ hỏng
@@ -117,6 +159,19 @@ function orderCode() {
   const day = `${part(now.getDate())}${part(now.getMonth() + 1)}`;
   const serial = String(Math.floor(1000 + Math.random() * 9000));
   return `MV${day}${serial}`;
+}
+
+/**
+ * Ngày `n` ngày sau hôm nay, dạng YYYY-MM-DD — thời hạn xoá ảnh đơn thuốc.
+ *
+ * Tính bằng giờ địa phương: `toISOString()` trả giờ UTC, và ở Việt Nam (UTC+7)
+ * thì một đơn gửi lúc 23:30 ngày 15 sẽ được ghi nhầm thành ngày 16.
+ */
+function dateAfter(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const part = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${part(date.getMonth() + 1)}-${part(date.getDate())}`;
 }
 
 /** ISO không kèm múi giờ — cùng định dạng với các đơn mẫu trong `lib/data/orders`. */

@@ -6,7 +6,13 @@ import { Card, SectionHeading } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Field";
 import { Badge } from "@/components/ui/Badge";
 import { formatDateTime, formatVnd } from "@/lib/format";
-import { getOrderByCode, orderStatusLabel, orderStatusHint } from "@/lib/data/orders";
+import {
+  getOrderByCode,
+  getPrescriptionByOrderCode,
+  orderStatusLabel,
+  orderStatusHint,
+  type PrescriptionStatus,
+} from "@/lib/data/orders";
 import { Package, Phone } from "@/lib/icons";
 import { site } from "@/lib/data/site";
 import { readPlacedOrderCodes } from "@/lib/shop/placed-orders";
@@ -122,6 +128,20 @@ export default async function OrderLookupPage({
             {formatDateTime(order.placedAt)}
           </p>
 
+          {/*
+            Địa chỉ giao chỉ hiện với đơn khách tự đặt — đơn mẫu cũ không lưu.
+            Đây là trang tra được bằng mã đơn, nên nó KHÔNG in email; số điện
+            thoại cũng vậy. Địa chỉ là thứ người nhận hàng cần để biết đơn đi đâu.
+          */}
+          {order.address ? (
+            <dl className="mt-4 flex flex-col gap-1.5 border-t border-divider pt-4 text-body-md">
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-ink-subtle">Giao tới</dt>
+                <dd className="min-w-0 text-ink-muted">{order.address}</dd>
+              </div>
+            </dl>
+          ) : null}
+
           <ul className="mt-4 flex flex-col gap-2.5 border-t border-divider pt-4">
             {order.items.map((item) => (
               <li
@@ -150,6 +170,10 @@ export default async function OrderLookupPage({
               </li>
             ))}
           </ul>
+
+          {order.requiresPrescription ? (
+            <PrescriptionStatusBlock orderCode={order.code} />
+          ) : null}
 
           <div className="mt-4 flex flex-col gap-1.5 border-t border-divider pt-4 text-body-md">
             <p className="flex justify-between gap-3 text-ink-muted">
@@ -206,3 +230,72 @@ export default async function OrderLookupPage({
     </ContentPage>
   );
 }
+
+/**
+ * Đơn thuốc của đơn hàng — trạng thái duyệt, và lý do từ chối nếu có.
+ *
+ * Khối này là lý do tồn tại của cả luồng duyệt phía sau: khách gửi ảnh đơn để
+ * được giao thuốc, nên họ phải đọc được kết quả ở đúng chỗ họ tra đơn. Lý do từ
+ * chối in NGUYÊN VĂN câu dược sĩ viết — viết lại cho mượt là che mất chi tiết
+ * duy nhất khách cần để sửa.
+ *
+ * Đơn có thuốc kê đơn mà chưa có dòng đơn thuốc là đơn đặt trước khi sửa luồng
+ * này; nói đúng chuyện đó thay vì hiện "chờ duyệt" cho một tệp không tồn tại.
+ */
+function PrescriptionStatusBlock({ orderCode }: { orderCode: string }) {
+  const row = getPrescriptionByOrderCode(orderCode);
+
+  if (!row) {
+    return (
+      <p className="mt-4 rounded-card border border-hairline bg-recessed px-4 py-3 text-body-sm text-ink-muted">
+        Đơn có thuốc kê đơn nhưng chưa có ảnh đơn đính kèm. Gọi{" "}
+        <span className="tabular-nums text-ink">{site.hotline}</span> để dược sĩ hướng
+        dẫn bổ sung.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 rounded-card border border-hairline bg-card px-4 py-3">
+      <p className="flex flex-wrap items-center gap-2 text-label-md text-ink">
+        <Badge tone="prescription">Đơn thuốc</Badge>
+        <span className="text-ink-muted">{prescriptionStatusLabel[row.status]}</span>
+      </p>
+
+      {row.status === "cho-duyet" ? (
+        <p className="mt-1.5 text-body-sm text-ink-muted">
+          Dược sĩ đang xem đơn của bạn và sẽ gọi xác nhận. Thuốc kê đơn chỉ được soạn
+          sau khi đơn thuốc hợp lệ.
+        </p>
+      ) : null}
+
+      {row.status === "da-duyet" ? (
+        <p className="mt-1.5 text-body-sm text-ink-muted">
+          Đơn thuốc đã được dược sĩ duyệt
+          {row.reviewedBy ? ` (${row.reviewedBy})` : ""}. Đơn hàng được soạn theo đúng
+          đơn này.
+        </p>
+      ) : null}
+
+      {row.status === "tu-choi" ? (
+        <>
+          <p className="mt-1.5 text-body-sm text-ink">
+            <span className="text-ink-subtle">Lý do: </span>
+            {row.rejectReason}
+          </p>
+          <p className="mt-1.5 text-body-sm text-ink-muted">
+            Gửi lại ảnh đơn đã sửa hoặc gọi{" "}
+            <span className="tabular-nums text-ink">{site.hotline}</span> để được hướng
+            dẫn.
+          </p>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+const prescriptionStatusLabel: Record<PrescriptionStatus, string> = {
+  "cho-duyet": "Chờ duyệt",
+  "da-duyet": "Đã duyệt",
+  "tu-choi": "Bị từ chối",
+};

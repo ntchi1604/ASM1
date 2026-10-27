@@ -163,10 +163,28 @@ export default async function ProductPage({
               hrefFor={(label) => queryHref({ dv: label })}
             />
 
-            {/* Thuốc kê đơn: không có bộ chọn số lượng và không có nút thêm giỏ
-                hàng. Cùng quy tắc mà ProductCard áp dụng ở trang danh mục. */}
+            {/* Thuốc kê đơn vào giỏ được, nhưng KHÔNG có "Mua ngay": bước thanh
+                toán bắt buộc gửi ảnh đơn, nên đi tắt sang đó chỉ để bị trả về.
+                Thẻ danh mục vẫn chỉ hiện "Tư vấn dược sĩ" — đường mua đi qua
+                trang chi tiết, nơi có lời giải thích ngay dưới nút. */}
             {product.prescriptionRequired ? (
               <div className="mt-4 flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-label-md text-ink">Số lượng:</span>
+                  <QuantityStepper
+                    max={product.stock.total}
+                    value={quantity}
+                    hrefFor={(next) => queryHref({ sl: next })}
+                  />
+                </div>
+                <AddToCartForm
+                  product={product}
+                  unitLabel={selectedUnit.label}
+                  quantity={quantity}
+                  size="lg"
+                  fullWidth
+                  icon={<ShoppingCart size={18} aria-hidden />}
+                />
                 <ButtonLink href="/ai/chatbot" variant="outline-trust" size="lg" fullWidth>
                   <Stethoscope size={18} aria-hidden />
                   Tư vấn dược sĩ

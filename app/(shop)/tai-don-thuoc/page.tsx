@@ -35,8 +35,8 @@ export default function UploadPrescriptionPage() {
       <Card className="border-danger/30 bg-danger-wash p-4 md:p-5">
         <h2 className="text-headline-md text-ink">Thuốc kê đơn không bán không đơn</h2>
         <p className="mt-2 text-body-md text-ink-muted">
-          MediVia không có nút “thêm vào giỏ” cho thuốc kê đơn. Thuốc chỉ được soạn
-          sau khi dược sĩ xem đơn của bác sĩ và gọi xác nhận với bạn.
+          Thuốc kê đơn thêm vào giỏ được như thuốc thường, nhưng chưa được soạn cho tới
+          khi dược sĩ xem đơn của bác sĩ và gọi xác nhận với bạn.
         </p>
       </Card>
 
@@ -64,8 +64,8 @@ export default function UploadPrescriptionPage() {
             Hạn mức {(prescriptionMaxBytes / 1_048_576).toLocaleString("vi-VN", {
               maximumFractionDigits: 0,
             })}{" "}
-            MB là hạn mức thật của hệ thống, không phải câu ước lệ — ảnh lớn hơn sẽ bị
-            từ chối ngay lúc chọn tệp.
+            MB là hạn mức thật của hệ thống, không phải câu ước lệ — tệp lớn hơn không
+            được nhận, và bạn quay lại bước thanh toán để chọn ảnh nhỏ hơn.
           </span>
         </p>
       </Card>

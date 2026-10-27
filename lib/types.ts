@@ -41,6 +41,21 @@ export type DosageForm =
  */
 export type Audience = "nguoi-lon" | "tre-em" | "nguoi-cao-tuoi";
 
+/**
+ * Một lô hàng đã nhập. Một mặt hàng nhập nhiều đợt thì mỗi đợt một lô, mỗi lô
+ * một hạn dùng riêng — hạn dùng không phải thuộc tính của mặt hàng mà của lô.
+ *
+ * `quantity` tính theo ĐƠN VỊ MẶC ĐỊNH của mặt hàng (hộp, chai), cùng đơn vị
+ * với `Product.stock.total`; trộn hai đơn vị thì tổng cộng ra số vô nghĩa.
+ */
+export type StockBatch = {
+  /** Mã lô in trên vỏ hộp. Không đổi được vì nó là thứ đối chiếu với giấy tờ nhập. */
+  lot: string;
+  quantity: number;
+  /** `yyyy-mm-dd`. */
+  expiryDate: string;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -62,11 +77,16 @@ export type Product = {
   prescriptionRequired: boolean;
   units: ProductUnit[];
   stock: {
-    /** Tổng số còn lại; 0 ⇒ hết hàng. */
+    /** Tổng số còn lại; 0 ⇒ hết hàng. Có lô thì đây là tổng số lượng của các lô. */
     total: number;
     nearbyPharmacies: number;
     /** Chỉ khi total = 0: ngày dự kiến có hàng lại, dạng ISO. */
     restockDate?: string;
+    /**
+     * Các lô đang có. Bỏ trống với mặt hàng chưa khai lô — khi đó `total` là con
+     * số nhập tay. Có lô thì `total` phải bằng tổng `quantity`, xem `saveBatches`.
+     */
+    batches?: StockBatch[];
   };
   image: string;
   /** Dùng cho khối tóm tắt AI ở trang chi tiết. */

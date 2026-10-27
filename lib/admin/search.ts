@@ -95,7 +95,7 @@ export function adminSearch(rawQuery: string): SearchResults {
 
   const ordersHit: SearchHit[] = [];
   for (const order of getOrders()) {
-    if (!hit(order.code, order.customer, order.phone)) continue;
+    if (!hit(order.code, order.customer, order.phone, order.email, order.address)) continue;
     ordersHit.push({
       title: order.code,
       meta: `${order.customer} · ${order.phone} · ${formatVnd(order.summary.total)}`,

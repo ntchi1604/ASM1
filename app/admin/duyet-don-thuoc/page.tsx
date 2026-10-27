@@ -4,20 +4,29 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { StatCard } from "@/components/admin/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Card, SectionHeading } from "@/components/ui/Card";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime, formatFileSize } from "@/lib/format";
 import {
   getPrescriptionRows,
   prescriptionMaxBytes,
   prescriptionRejectReasons,
+  type PrescriptionRow,
   type PrescriptionStatus,
 } from "@/lib/data/orders";
+import { listRows, updateRow } from "@/lib/admin/db";
+import {
+  prescriptionExpiredReason,
+  purgeExpiredPrescriptions,
+  prescriptionUrl,
+} from "@/lib/prescriptions";
 import { requireSession } from "@/lib/admin/auth";
 import { canApprovePrescriptions } from "@/lib/admin/users";
-import { reviewPrescription } from "@/lib/admin/actions";
-import { AdminButtonForm, AdminForm } from "@/components/admin/AdminForm";
+import {
+  PrescriptionReviewForm,
+  PrescriptionStatusChip,
+  prescriptionStatusLabel,
+} from "@/components/admin/PrescriptionReview";
 import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
 import { matchesQuery, readFilter } from "@/lib/admin/filter";
-import { Field, Select } from "@/components/ui/Field";
 import { AlertTriangle, ClipboardList, Clock, FileText, ShieldCheck } from "@/lib/icons";
 
 export const metadata: Metadata = {
@@ -30,11 +39,13 @@ export const metadata: Metadata = {
  *
  * Đây là màn hình giữ ba lời hứa đã nói với khách ở trang Quy định bán thuốc kê đơn,
  * nên ba lời hứa đó hiện thành chữ trên trang chứ không nằm trong chú thích mã:
- *  1. Ảnh đơn không nằm trong đường dẫn công khai — trang này chỉ hiện TÊN TỆP, và
- *     nói rõ tệp nằm trong kho riêng. Lược đồ cũng gọi nó là `storage_key`, không
- *     phải URL. Hiện ảnh ở đây là tự tay tạo đường dẫn công khai cho đơn thuốc.
+ *  1. Ảnh đơn không nằm trong đường dẫn công khai — tệp ở `.data/prescriptions`
+ *     và đi qua `/api/don-thuoc/[name]`, nơi chỉ phiên `duoc-si` đọc được. Lược đồ
+ *     cũng gọi nó là `storage_key`, không phải URL.
  *  2. Chỉ nhận JPG, PNG, PDF dưới 10 MB — cột dung lượng đối chiếu với hạn mức đó.
  *  3. Ảnh bị xoá sau khi đơn hoàn tất — mọi dòng đều có hạn xoá, lược đồ để NOT NULL.
+ *     Hạn đó được dọn ở đầu trang này (`purgeExpiredPrescriptions`), và đặt về hôm
+ *     nay ở `setOrderStatus` khi đơn đóng.
  *
  * Nút duyệt và từ chối chỉ hiện với vai trò `duoc-si`. Kiểm quyền THẬT nằm trong
  * `reviewPrescription` — người gửi không bao giờ đi qua giao diện. Tài khoản kế toán
@@ -45,36 +56,36 @@ export const metadata: Metadata = {
  * điền cũng được.
  */
 
-const statusLabel: Record<PrescriptionStatus, string> = {
-  "cho-duyet": "Chờ duyệt",
-  "da-duyet": "Đã duyệt",
-  "tu-choi": "Từ chối",
-};
-
-const statusClass: Record<PrescriptionStatus, string> = {
-  "cho-duyet": "bg-trust-wash text-trust-text",
-  "da-duyet": "bg-recessed text-ink-muted",
-  "tu-choi": "bg-recessed text-ink-muted",
-};
-
-/**
- * Dung lượng tệp: "1,2 MB" — cùng một cách viết ở mọi dòng.
- *
- * Chia cho 1.048.576 (MiB) chứ không phải 1.000.000: hạn mức của lược đồ là
- * 10.485.760 byte, và mọi câu đã hứa với khách đều ghi "dưới 10 MB". Chia theo
- * hệ thập phân thì chính dòng hạn mức hiện "10,5 MB" — trông như hệ thống cho
- * phép nhiều hơn mức nó thực sự nhận.
- */
-function formatFileSize(bytes: number): string {
-  return `${(bytes / 1_048_576).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} MB`;
-}
-
 export default async function AdminPrescriptionsPage({
   searchParams,
 }: PageProps<"/admin/duyet-don-thuoc">) {
   const session = await requireSession();
   const canReview = canApprovePrescriptions(session.role);
   const filter = readFilter(await searchParams, ["q", "trang-thai"]);
+
+  /*
+    Dọn ảnh quá hạn ở đây chứ không trong `getPrescriptionRows`: hàm đó còn chạy
+    trong script sinh dữ liệu (`design/seed-postgres.mjs`) và lúc build.
+    Không cần cờ "mỗi tiến trình một lần": dòng đã dọn có `storageKey` rỗng nên
+    lần render sau hàm bỏ qua hết, không unlink lại.
+  */
+  const stale = listRows("prescriptions") as PrescriptionRow[];
+  for (const code of purgeExpiredPrescriptions(stale)) {
+    /*
+      Hết hạn lưu ảnh mà chưa ai quyết định nghĩa là việc này không còn ai làm.
+      Đóng luôn đơn thuốc với lý do khách đọc được: để nguyên `cho-duyet` thì nút
+      duyệt còn đó trong khi ảnh đã mất, và khách chờ mãi một câu trả lời không tới.
+      Không ghi `reviewedBy` — không dược sĩ nào duyệt đơn này, hệ thống đóng nó.
+    */
+    const row = stale.find((item) => item.orderCode === code);
+    updateRow("prescriptions", code, {
+      storageKey: "",
+      ...(row?.status === "cho-duyet"
+        ? { status: "tu-choi" as const, rejectReason: prescriptionExpiredReason }
+        : {}),
+    });
+  }
+
   const rows = getPrescriptionRows();
 
   // Lọc trước rồi mới chia hai nhóm: lọc sau khi chia thì một trong hai thẻ
@@ -111,7 +122,7 @@ export default async function AdminPrescriptionsPage({
             hint="Phải gọi khách trước khi soạn thuốc"
             danger={allPending.length > 0}
           />
-          <StatCard label="Đã xử lý" value={`${allDecided.length} đơn`} hint="Trong danh sách mẫu" />
+          <StatCard label="Đã xử lý" value={`${allDecided.length} đơn`} hint="Đã duyệt hoặc từ chối" />
           <StatCard
             label="Thời hạn lưu ảnh"
             value="Xoá sau khi đơn hoàn tất"
@@ -155,10 +166,12 @@ export default async function AdminPrescriptionsPage({
               name: "trang-thai",
               label: "Trạng thái",
               value: filter["trang-thai"],
-              options: (Object.keys(statusLabel) as PrescriptionStatus[]).map((status) => ({
-                value: status,
-                label: statusLabel[status],
-              })),
+              options: (Object.keys(prescriptionStatusLabel) as PrescriptionStatus[]).map(
+                (status) => ({
+                  value: status,
+                  label: prescriptionStatusLabel[status],
+                }),
+              ),
             },
           ]}
         />
@@ -190,7 +203,7 @@ export default async function AdminPrescriptionsPage({
                   id={`dt-${row.orderCode}`}
                   className="scroll-mt-24 border-b border-divider last:border-b-0"
                 >
-                  <PrescriptionCard row={row} canReview={canReview} />
+                  <PrescriptionCard row={row} canReview={canReview} canViewFile={canReview} />
                 </li>
               ))}
             </ul>
@@ -221,7 +234,7 @@ export default async function AdminPrescriptionsPage({
                 id={`dt-${row.orderCode}`}
                 className="scroll-mt-24 border-b border-divider last:border-b-0"
               >
-                <PrescriptionCard row={row} canReview={false} />
+                <PrescriptionCard row={row} canReview={false} canViewFile={canReview} />
               </li>
             ))}
           </ul>
@@ -229,10 +242,11 @@ export default async function AdminPrescriptionsPage({
         </Card>
 
         <Card className="p-4 md:p-5">
-          <SectionHeading title="Lý do từ chối được dùng" />
+          <SectionHeading title="Lý do từ chối thường gặp" />
           <p className="text-body-sm text-ink-muted">
-            Dược sĩ chọn trong danh sách này chứ không gõ tự do — lý do từ chối là câu khách đọc
-            để biết phải sửa gì, và câu gõ tự do thì mỗi người viết một kiểu.
+            Bốn câu dưới đây là bốn trường hợp đã hứa với khách ở trang Quy định bán thuốc kê
+            đơn, và là lựa chọn mặc định khi từ chối. Đơn không rơi vào ô nào thì dược sĩ tự
+            viết lý do — câu khách đọc phải đúng với đơn của họ, không phải câu gần đúng nhất.
           </p>
           <ul className="mt-3 flex flex-col gap-2">
             {prescriptionRejectReasons.map((reason) => (
@@ -247,9 +261,11 @@ export default async function AdminPrescriptionsPage({
           <p className="mt-4 flex items-start gap-2 text-body-sm text-ink-subtle">
             <ShieldCheck size={15} className="mt-0.5 shrink-0 text-trust-text" aria-hidden />
             <span>
-              Ảnh đơn thuốc nằm trong kho riêng, không có đường dẫn công khai. Trang này chỉ
-              hiện tên tệp và hạn xoá; mở ảnh để duyệt là việc trong phần mềm nội bộ có ghi
-              nhật ký truy cập.
+              Ảnh đơn thuốc nằm trong kho riêng, không có đường dẫn công khai. Mở ảnh đi qua
+              đường dẫn chỉ tài khoản dược sĩ đọc được — người khác nhận 404 chứ không phải
+              trang đăng nhập — và mỗi lần mở được ghi vào{" "}
+              <span className="font-mono text-ink-muted">.data/prescriptions-access.log</span>{" "}
+              kèm tên dược sĩ và thời điểm.
             </span>
           </p>
         </Card>
@@ -261,20 +277,18 @@ export default async function AdminPrescriptionsPage({
 function PrescriptionCard({
   row,
   canReview,
+  canViewFile,
 }: {
   row: ReturnType<typeof getPrescriptionRows>[number];
   canReview: boolean;
+  canViewFile: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3 p-4 md:flex-row md:items-start md:justify-between md:gap-6 md:p-5">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium tabular-nums text-body-md text-ink">{row.orderCode}</span>
-          <span
-            className={`inline-flex items-center whitespace-nowrap rounded-chip px-2 py-0.5 text-label-sm ${statusClass[row.status]}`}
-          >
-            {statusLabel[row.status]}
-          </span>
+          <PrescriptionStatusChip status={row.status} />
         </div>
 
         <p className="mt-1 text-body-sm text-ink-muted">
@@ -304,6 +318,8 @@ function PrescriptionCard({
           <span>· xoá sau {formatDate(row.deleteAfter)}</span>
         </p>
 
+        <PrescriptionFile row={row} canViewFile={canViewFile} />
+
         {row.rejectReason ? (
           <p className="mt-2 text-body-sm text-ink-muted">
             <strong className="font-medium text-ink">Lý do từ chối: </strong>
@@ -312,7 +328,7 @@ function PrescriptionCard({
         ) : null}
       </div>
 
-      {canReview ? <ReviewForm orderCode={row.orderCode} /> : null}
+      {canReview ? <PrescriptionReviewForm orderCode={row.orderCode} /> : null}
 
       <div className="shrink-0 text-body-sm text-ink-subtle md:text-right">
         {row.reviewedBy && row.reviewedAt ? (
@@ -323,6 +339,8 @@ function PrescriptionCard({
             </p>
             <p className="mt-0.5">{formatDateTime(row.reviewedAt)}</p>
           </>
+        ) : row.rejectReason ? (
+          <p>Hệ thống đóng — hết hạn lưu ảnh</p>
         ) : (
           <p>Chưa có dược sĩ duyệt</p>
         )}
@@ -332,46 +350,51 @@ function PrescriptionCard({
 }
 
 /**
- * Hai nút quyết định của một đơn thuốc chờ duyệt.
+ * Xem nhanh tệp đơn thuốc ngay trong hàng đợi.
  *
- * Tách thành hai form chứ không một form hai nút: nút từ chối cần ô chọn lý do, và
- * gộp chung thì lý do từ chối nằm ngay cạnh nút duyệt — bấm duyệt mà trong đầu còn
- * đang nghĩ tới lý do là chuyện xảy ra được. Tách ra thì mỗi nút một việc.
+ * Ở đây CHỈ là bản xem trước: ảnh bị kẹp ở 224px để mười đơn vừa một màn hình, đủ
+ * để biết đơn nào là tờ giấy trắng nhoè còn đơn nào là đơn có chữ ký. Chữ trên tờ
+ * đơn thì phải mở trang chi tiết — đó là lý do route `[orderCode]` tồn tại.
  *
- * Duyệt không hỏi lại: nó là quyết định thường gặp, hỏi lại chỉ làm chậm hàng đợi.
- * Từ chối thì bắt buộc chọn lý do, vì lý do là câu khách dùng để biết phải sửa gì.
+ * Ba trạng thái, ba câu khác nhau — gộp chúng thành "không xem được" là để dược sĩ
+ * đoán mò giữa "chưa từng có tệp" và "tệp bị xoá theo hạn".
  */
-function ReviewForm({ orderCode }: { orderCode: string }) {
+function PrescriptionFile({
+  row,
+  canViewFile,
+}: {
+  row: ReturnType<typeof getPrescriptionRows>[number];
+  canViewFile: boolean;
+}) {
   return (
-    <div className="flex shrink-0 flex-col gap-3 md:w-72">
-      <AdminButtonForm
-        action={reviewPrescription}
-        hidden={{ orderCode, decision: "duyet" }}
-        submit="Duyệt đơn này"
-        variant="solid-trust"
-        size="sm"
-      />
-
-      <AdminForm
-        action={reviewPrescription}
-        hidden={{ orderCode, decision: "tu-choi" }}
-        submit="Từ chối"
-        variant="outline-trust"
-        size="sm"
+    <div className="mt-2 flex flex-col gap-2">
+      <Link
+        href={`/admin/duyet-don-thuoc/${row.orderCode}`}
+        className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-chip text-label-sm text-trust-text underline decoration-trust/30 underline-offset-2"
       >
-        <Field label="Lý do từ chối" id={`reason-${orderCode}`} required>
-          <Select id={`reason-${orderCode}`} name="rejectReason" required defaultValue="">
-            <option value="" disabled>
-              Chọn lý do…
-            </option>
-            {prescriptionRejectReasons.map((reason) => (
-              <option key={reason} value={reason}>
-                {reason}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </AdminForm>
+        Xem chi tiết đơn thuốc
+      </Link>
+
+      {!canViewFile ? (
+        <p className="text-body-sm text-ink-subtle">
+          Ảnh chỉ mở được bằng tài khoản dược sĩ.
+        </p>
+      ) : !row.storageKey ? (
+        <p className="text-body-sm text-ink-subtle">
+          {row.storageKey === ""
+            ? "Ảnh đã xoá theo thời hạn lưu — hồ sơ duyệt vẫn còn."
+            : "Không có tệp đính kèm cho đơn này."}
+        </p>
+      ) : row.mimeType === "application/pdf" ? (
+        <p className="text-body-sm text-ink-subtle">Đơn thuốc là tệp PDF — mở ở trang chi tiết.</p>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- tệp riêng, không qua next/image
+        <img
+          src={prescriptionUrl(row.storageKey)}
+          alt={`Đơn thuốc của đơn ${row.orderCode}`}
+          className="max-h-56 w-auto max-w-full rounded-card border border-hairline object-contain"
+        />
+      )}
     </div>
   );
 }

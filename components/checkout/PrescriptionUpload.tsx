@@ -4,12 +4,13 @@ import type { CartItem } from "@/lib/data/cart";
 /**
  * Tải đơn thuốc — chỉ hiện khi giỏ THỰC SỰ có thuốc kê đơn.
  *
- * Bản thiết kế Stitch vẽ sẵn khối này kèm một tệp "đã tải lên". Ở đây khối chỉ
- * xuất hiện khi có thuốc kê đơn trong giỏ, và luôn ở trạng thái chưa tải: vẽ sẵn
- * một tệp đã tải là nói với người dùng rằng họ đã làm xong một việc chưa làm.
+ * Ô tệp phải có `name` thì `FormData` mới mang tệp lên server; thiếu nó thì cả
+ * khối này là hình vẽ — khách chọn ảnh, bấm đặt hàng, và không có gì được gửi.
+ * `required` để trình duyệt chặn ngay tại chỗ; `placeOrder` vẫn tự kiểm lại, vì
+ * thuộc tính HTML không phải là kiểm tra phía server.
  *
- * Vẫn giữ trong mã dù giỏ mẫu không có thuốc kê đơn, vì MediVia có bán thuốc kê
- * đơn — bỏ hẳn thì lúc mở bán sẽ thiếu đúng bước bắt buộc theo quy định.
+ * Không cần `encType`: form là server action, React tự gửi multipart — cùng cách
+ * `ReviewForm` đang gửi ảnh đánh giá.
  */
 export function PrescriptionUpload({ items }: { items: CartItem[] }) {
   const needsPrescription = items.filter((item) => item.product.prescriptionRequired);
@@ -38,8 +39,10 @@ export function PrescriptionUpload({ items }: { items: CartItem[] }) {
       </label>
       <input
         id="anh-don-thuoc"
+        name="donThuoc"
         type="file"
         accept="image/jpeg,image/png,application/pdf"
+        required
         className="sr-only"
       />
 

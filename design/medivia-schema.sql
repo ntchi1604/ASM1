@@ -211,6 +211,31 @@ CREATE TABLE stock_levels (
 
 CREATE INDEX stock_levels_pharmacy_idx ON stock_levels (pharmacy_id) WHERE quantity > 0;
 
+-- Hạn dùng thuộc về LÔ, không thuộc về sản phẩm. Một sản phẩm nhập ba đợt có ba
+-- hạn khác nhau; hỏi "hạn dùng của Hapacol là bao nhiêu" là câu hỏi không có câu
+-- trả lời đúng nếu chỉ có một cột `expiry_date` trên bảng `products`.
+--
+-- `quantity` ở đây là tồn của lô trên TOÀN HỆ THỐNG, còn `stock_levels` chia theo
+-- nhà thuốc. Hai bảng đếm hai thứ khác nhau và phải cộng khớp: hệ thật nên gộp
+-- thành `stock_levels(product_id, pharmacy_id, lot)` để mỗi nhà thuốc biết mình
+-- còn lô nào. ponytail: để rời vì bản mẫu chưa có luồng chuyển kho giữa nhà thuốc.
+CREATE TABLE product_batches (
+  product_id   varchar(64) NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  -- Mã lô in trên vỏ hộp. Khoá cùng sản phẩm: hai sản phẩm khác nhau nhà sản
+  -- xuất có thể trùng mã lô, gộp thành một khoá toàn cục là xoá mất một lô thật.
+  lot          varchar(64) NOT NULL,
+  quantity     integer     NOT NULL CHECK (quantity >= 0),
+  expiry_date  date        NOT NULL,
+  PRIMARY KEY (product_id, lot)
+);
+
+-- Truy vấn thường gặp là "lô nào hết hạn trước" — đúng thứ tự xuất kho FEFO.
+CREATE INDEX product_batches_fefo_idx ON product_batches (product_id, expiry_date)
+  WHERE quantity > 0;
+-- Cảnh báo "lô cận hạn" quét toàn kho theo hạn, không theo sản phẩm.
+CREATE INDEX product_batches_expiry_idx ON product_batches (expiry_date)
+  WHERE quantity > 0;
+
 -- Gợi ý "Thường được mua cùng" — tính năng AI #4.
 CREATE TYPE combo_scope AS ENUM ('product', 'category');
 
